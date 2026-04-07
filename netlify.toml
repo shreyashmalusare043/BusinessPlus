@@ -6,6 +6,13 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# --- HI NAVIN RULE ADD KARA ---
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# API redirects 
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

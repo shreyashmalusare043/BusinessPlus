@@ -31,6 +31,7 @@ import ViewChallanPage from './pages/ViewChallanPage';
 import SubscriptionPage from './pages/SubscriptionPage';
 import AdminSubscriptionsPage from './pages/AdminSubscriptionsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsConditionsPage from './pages/TermsConditionsPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
@@ -68,6 +69,12 @@ const routes: RouteConfig[] = [
     name: 'Verify Email',
     path: '/verify-email',
     element: <VerifyEmailPage />,
+    visible: false,
+  },
+  {
+    name: 'Auth Callback',
+    path: '/auth/callback',
+    element: <AuthCallbackPage />,
     visible: false,
   },
   {

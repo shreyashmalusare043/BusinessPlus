@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+// @ts-ignore
 import { miaodaDevPlugin } from "miaoda-sc-plugin";
 import react from "@vitejs/plugin-react";
 import svgr from "vite-plugin-svgr";

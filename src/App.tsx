@@ -24,6 +24,7 @@ const App: React.FC = () => {
                 '/signup',
                 '/company-setup',
                 '/verify-email',
+                '/auth/callback',
                 '/forgot-password',
                 '/forgot-email',
                 '/reset-password',
