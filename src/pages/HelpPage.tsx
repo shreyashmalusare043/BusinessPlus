@@ -106,7 +106,7 @@ export default function HelpPage() {
             <Mail className="h-5 w-5 text-primary mt-0.5" />
             <div>
               <p className="font-semibold">Email Support</p>
-              <p className="text-sm text-muted-foreground">support@invoxa.com</p>
+              <p className="text-sm text-muted-foreground">solutions.businessplus@gmail.com</p>
             </div>
           </div>
           <div className="flex items-start gap-3">

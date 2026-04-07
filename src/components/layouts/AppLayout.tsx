@@ -72,7 +72,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center border-b px-6 gap-3">
-        <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-lg">
+        <div className="flex items-center justify-center w-10 h-10 ">
           <img src="/images/logo/businesspluslogo.png" alt="" />
         </div>
         <h1 className="text-lg font-bold text-sidebar-foreground">BusinessPlus</h1>

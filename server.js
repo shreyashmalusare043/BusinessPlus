@@ -121,8 +121,8 @@ app.get('/health', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`\n🚀 Razorpay Backend Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🚀 Razorpay Backend Server running on http://0.0.0.0:${PORT}`);
   console.log(`📍 API Base: http://localhost:${PORT}/api/razorpay`);
   console.log('\n✨ Ready to process payments!\n');
 });
