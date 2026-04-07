@@ -260,17 +260,44 @@ export default function ViewBillPage() {
       </div>
 
       {/* Printable Content */}
-      <div ref={printRef} className="bg-white p-4">
-        <style>
-          {`
-            @media print {
-              body { margin: 0; padding: 0; }
-              .bill-copy { page-break-after: always; }
-              .bill-copy:last-child { page-break-after: auto; }
-              @page { margin: 0.5cm; size: A4; }
-            }
-          `}
-        </style>
+      <style>
+  {`
+    @media print {
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100%;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      .bill-copy {
+        page-break-after: always;
+        width: 100%;
+        padding: 20px !important;
+        box-sizing: border-box;
+      }
+
+      .bill-copy:last-child {
+        page-break-after: auto;
+      }
+
+      /* Remove extra spacing issues */
+      * {
+        box-sizing: border-box;
+      }
+
+      /* Fix table */
+      table {
+        width: 100% !important;
+        border-collapse: collapse;
+      }
+    }
+  `}
+</style>
         
         {/* Original Copy */}
         <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
