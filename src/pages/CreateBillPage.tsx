@@ -517,7 +517,7 @@ export default function CreateBillPage() {
             <CardContent>
               <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="hidden md:table-header-group">
                     <TableRow>
                       <TableHead>Item Name</TableHead>
                       <TableHead>HSN Code</TableHead>
@@ -535,8 +535,9 @@ export default function CreateBillPage() {
                       const lineTotal = calculateLineTotal(item);
 
                       return (
-                        <TableRow key={field.id}>
-                          <TableCell>
+                        <TableRow key={field.id} className="block md:table-row border-b md:border-b mb-4 md:mb-0 pb-4 md:pb-0">
+                          {/* Mobile Card Layout */}
+                          <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['Item:'] before:font-bold before:mr-2 md:before:content-none">
                             <FormField
                               control={form.control}
                               name={`items.${index}.item_name`}
@@ -544,26 +545,26 @@ export default function CreateBillPage() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <Input {...field} placeholder="Item name" />
+                                    <Input {...field} placeholder="Item name" className="text-sm" />
                                   </FormControl>
                                 </FormItem>
                               )}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['HSN:'] before:font-bold before:mr-2 md:before:content-none">
                             <FormField
                               control={form.control}
                               name={`items.${index}.hsn_code`}
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <Input {...field} placeholder="HSN" />
+                                    <Input {...field} placeholder="HSN" className="text-sm" />
                                   </FormControl>
                                 </FormItem>
                               )}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['Qty:'] before:font-bold before:mr-2 md:before:content-none">
                             <FormField
                               control={form.control}
                               name={`items.${index}.quantity`}
@@ -576,13 +577,14 @@ export default function CreateBillPage() {
                                       type="number"
                                       step="0.01"
                                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                      className="text-sm"
                                     />
                                   </FormControl>
                                 </FormItem>
                               )}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['Price:'] before:font-bold before:mr-2 md:before:content-none">
                             <FormField
                               control={form.control}
                               name={`items.${index}.unit_price`}
@@ -595,13 +597,14 @@ export default function CreateBillPage() {
                                       type="number"
                                       step="0.01"
                                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                      className="text-sm"
                                     />
                                   </FormControl>
                                 </FormItem>
                               )}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['CGST:'] before:font-bold before:mr-2 md:before:content-none">
                             <FormField
                               control={form.control}
                               name={`items.${index}.cgst_rate`}
@@ -613,13 +616,14 @@ export default function CreateBillPage() {
                                       type="number"
                                       step="0.01"
                                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                      className="text-sm"
                                     />
                                   </FormControl>
                                 </FormItem>
                               )}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['SGST:'] before:font-bold before:mr-2 md:before:content-none">
                             <FormField
                               control={form.control}
                               name={`items.${index}.sgst_rate`}
@@ -631,14 +635,15 @@ export default function CreateBillPage() {
                                       type="number"
                                       step="0.01"
                                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                      className="text-sm"
                                     />
                                   </FormControl>
                                 </FormItem>
                               )}
                             />
                           </TableCell>
-                          <TableCell className="text-right font-medium">₹{lineTotal.toFixed(2)}</TableCell>
-                          <TableCell>
+                          <TableCell className="block md:table-cell text-sm md:text-base font-medium text-right md:text-right pb-2 md:pb-0 before:content-['Total:'] before:font-bold before:mr-2 md:before:content-none">₹{lineTotal.toFixed(2)}</TableCell>
+                          <TableCell className="block md:table-cell text-right md:text-center">
                             {fields.length > 1 && (
                               <Button
                                 type="button"
