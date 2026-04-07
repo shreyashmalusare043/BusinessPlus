@@ -128,10 +128,12 @@ export default function SubscriptionPage() {
 
       console.log('🔄 Creating Razorpay order...');
 
-      // Call Netlify function to create Razorpay order
-      const backendUrl = '';
+      // Call backend to create Razorpay order
+      const isDev = import.meta.env.DEV;
+      const backendUrl = isDev ? import.meta.env.VITE_RAZORPAY_API_HOST : '';
+      const endpoint = isDev ? '/api/razorpay/create-order' : '/.netlify/functions/create-order';
       
-      const orderResponse = await fetch(`${backendUrl}/.netlify/functions/create-order`, {
+      const orderResponse = await fetch(`${backendUrl}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,9 +147,15 @@ export default function SubscriptionPage() {
       console.log('Response status:', orderResponse.status);
 
       if (!orderResponse.ok) {
-        const errorData = await orderResponse.json();
-        console.error('Backend error:', errorData);
-        toast.error(`Failed to create payment order: ${errorData.error || 'Unknown error'}`);
+        let errorMessage = 'Unknown error';
+        try {
+          const errorData = await orderResponse.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          errorMessage = `HTTP ${orderResponse.status}: ${orderResponse.statusText}`;
+        }
+        console.error('Backend error:', errorMessage);
+        toast.error(`Failed to create payment order: ${errorMessage}`);
         setLoading(false);
         return;
       }
