@@ -11,7 +11,7 @@ import type { BillWithItems, Company } from '@/types';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white border border-gray-300 p-5 min-h-[297mm] box-border">
+  <div className="bill-copy bg-white border border-gray-300 p-5 box-border max-w-[210mm]">
     {/* Header Section */}
     <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-300">
       {/* Company Info */}
@@ -223,11 +223,16 @@ export default function ViewBillPage() {
         size: A4;
         margin: 0.5cm;
       }
-      body {
+      html, body {
+        width: 210mm;
         margin: 0;
         padding: 0;
         -webkit-print-color-adjust: exact;
         color-adjust: exact;
+      }
+      body * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
       }
     `,
   });
@@ -273,33 +278,17 @@ export default function ViewBillPage() {
       </div>
 
       {/* Printable Content */}
-      <div className="hidden print:block">
-        <div ref={printRef} className="w-full">
-          {/* Original Copy */}
-          <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
-          
-          {/* Duplicate Copy */}
-          <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
-          
-          {/* Triplicate Copy */}
-          <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
-          
-          {/* Watermark - Only show for free users */}
-          {showWatermark && <Watermark type="bill" />}
-        </div>
-      </div>
-
-      {/* Screen Content */}
-      <div className="print:hidden bg-white w-[210mm] mx-auto border border-gray-200 rounded-lg overflow-hidden">
+      <div ref={printRef} className="bg-white w-full max-w-[210mm] mx-auto border border-gray-200 rounded-lg overflow-hidden">
         <style>
           {`
             @media print {
               .bill-copy {
+                width: 210mm;
+                max-width: 210mm;
                 page-break-after: always;
                 page-break-inside: avoid;
                 margin: 0;
                 border: none !important;
-                min-height: 297mm;
                 padding: 20px;
                 box-sizing: border-box;
               }
@@ -310,13 +299,12 @@ export default function ViewBillPage() {
                 size: A4;
                 margin: 0.5cm;
               }
-              body {
+              html, body {
+                width: 210mm;
                 margin: 0;
                 padding: 0;
-                -webkit-print-color-adjust: exact;
-                color-adjust: exact;
               }
-              * {
+              body * {
                 -webkit-print-color-adjust: exact !important;
                 color-adjust: exact !important;
               }
