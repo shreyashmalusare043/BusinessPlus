@@ -11,28 +11,28 @@ import type { BillWithItems, Company } from '@/types';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', marginBottom: '2rem', padding: '16px' }}>
+  <div className="bill-copy bg-white border border-gray-300 p-5 min-h-[297mm] box-border">
     {/* Header Section */}
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200">
+    <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-300">
       {/* Company Info */}
       <div className="flex gap-3 items-start">
         {company.logo_url && (
-          <img src={company.logo_url} alt="Logo" className="h-20 w-20 object-contain flex-shrink-0" />
+          <img src={company.logo_url} alt="Logo" className="h-16 w-16 object-contain flex-shrink-0" />
         )}
         <div>
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
-          <div className="text-sm text-gray-600 space-y-0.5">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">{company.company_name}</h1>
+          <div className="text-xs text-gray-600 space-y-0.5">
             <p>{company.address}</p>
             <p>Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
             {company.website && <p>Website: {company.website}</p>}
-            <p className="font-semibold text-gray-800 mt-1">GSTIN: {company.gst_number}</p>
+            <p className="font-semibold text-gray-800">GSTIN: {company.gst_number}</p>
           </div>
         </div>
       </div>
 
       {/* Invoice Title & Copy Type */}
       <div className="text-right">
-        <h2 className="text-4xl font-bold text-primary mb-2">INVOICE</h2>
+        <h2 className="text-3xl font-bold text-primary mb-2">INVOICE</h2>
         <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
           {copyType}
         </span>
@@ -40,7 +40,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
     </div>
 
     {/* Bill Info Section */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8">
+    <div className="grid grid-cols-2 gap-8 mb-8">
       {/* Bill To */}
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Bill To</p>
@@ -77,8 +77,8 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
     </div>
 
     {/* Items Table */}
-<div className="mb-8 overflow-x-auto">
-  <table className="w-full min-w-[600px]">
+    <div className="mb-8">
+      <table className="w-full">
         <thead>
           <tr className="border-b-2 border-gray-900">
             <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-12">#</th>
@@ -106,7 +106,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
     {/* Summary Section */}
     <div className="flex justify-end mb-8">
-  <div className="w-80">
+      <div className="w-80">
         <div className="space-y-2">
           <div className="flex justify-between py-2 text-sm border-b border-gray-200">
             <span className="text-gray-600">Subtotal</span>
@@ -130,7 +130,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
     {/* Bank Details & Footer */}
     <div className="border-t-2 border-gray-200 pt-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+      <div className="grid grid-cols-2 gap-8">
         {/* Bank Details */}
         <div>
           {(company.bank_name || company.account_number) && (
@@ -217,6 +217,19 @@ export default function ViewBillPage() {
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
+    documentTitle: `Invoice-${bill?.bill_no || 'Bill'}`,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 0.5cm;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+    `,
   });
 
   if (loading) {
@@ -260,56 +273,80 @@ export default function ViewBillPage() {
       </div>
 
       {/* Printable Content */}
-      <style>
-  {`
-    @media print {
-      html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100%;
-      }
+      <div className="hidden print:block">
+        <div ref={printRef} className="w-full">
+          {/* Original Copy */}
+          <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
+          
+          {/* Duplicate Copy */}
+          <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
+          
+          {/* Triplicate Copy */}
+          <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
+          
+          {/* Watermark - Only show for free users */}
+          {showWatermark && <Watermark type="bill" />}
+        </div>
+      </div>
 
-      @page {
-        size: A4;
-        margin: 0;
-      }
-
-      .bill-copy {
-        page-break-after: always;
-        width: 100%;
-        padding: 20px !important;
-        box-sizing: border-box;
-      }
-
-      .bill-copy:last-child {
-        page-break-after: auto;
-      }
-
-      /* Remove extra spacing issues */
-      * {
-        box-sizing: border-box;
-      }
-
-      /* Fix table */
-      table {
-        width: 100% !important;
-        border-collapse: collapse;
-      }
-    }
-  `}
-</style>
-        
-        {/* Original Copy */}
-        <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
-        
-        {/* Duplicate Copy */}
-        <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
-        
-        {/* Triplicate Copy */}
-        <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
-        
-        {/* Watermark - Only show for free users */}
-        {showWatermark && <Watermark type="bill" />}
+      {/* Screen Content */}
+      <div className="print:hidden bg-white w-[210mm] mx-auto border border-gray-200 rounded-lg overflow-hidden">
+        <style>
+          {`
+            @media print {
+              .bill-copy {
+                page-break-after: always;
+                page-break-inside: avoid;
+                margin: 0;
+                border: none !important;
+                min-height: 297mm;
+                padding: 20px;
+                box-sizing: border-box;
+              }
+              .bill-copy:last-child {
+                page-break-after: auto;
+              }
+              @page {
+                size: A4;
+                margin: 0.5cm;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+              }
+              * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+            }
+            @media screen {
+              .screen-content { max-width: 210mm; }
+              .bill-copy {
+                margin-bottom: 2rem;
+                border: 1px solid #e5e7eb !important;
+              }
+              .bill-copy:last-child {
+                margin-bottom: 0;
+              }
+            }
+          `}
+        </style>
+        <div className="screen-content">
+          {/* Original Copy */}
+          <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
+          
+          {/* Duplicate Copy */}
+          <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
+          
+          {/* Triplicate Copy */}
+          <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
+          
+          {/* Watermark - Only show for free users */}
+          {showWatermark && <Watermark type="bill" />}
+        </div>
+      </div>
     </div>
   );
 }
