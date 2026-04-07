@@ -128,10 +128,10 @@ export default function SubscriptionPage() {
 
       console.log('🔄 Creating Razorpay order...');
 
-      // Call local backend to create Razorpay order
-      const backendUrl = import.meta.env.VITE_RAZORPAY_API_HOST || 'http://localhost:5000';
+      // Call Netlify function to create Razorpay order
+      const backendUrl = '';
       
-      const orderResponse = await fetch(`${backendUrl}/api/razorpay/create-order`, {
+      const orderResponse = await fetch(`${backendUrl}/.netlify/functions/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ export default function SubscriptionPage() {
             console.log('🔐 Verifying payment...');
 
             // Verify payment signature with backend
-            const verifyResponse = await fetch(`${backendUrl}/api/razorpay/verify-payment`, {
+            const verifyResponse = await fetch(`${backendUrl}/.netlify/functions/verify-payment`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

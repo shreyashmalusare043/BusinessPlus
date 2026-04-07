@@ -10,7 +10,7 @@ export default function ForgotEmailPage() {
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="flex items-center justify-center w-12 h-12 ">
-              <img src="public/images/logo/businesspluslogo.png" alt="BusinessPlus Logo" />
+              <img src="/images/logo/businesspluslogo.png" alt="BusinessPlus Logo" />
             </div>
             <h1 className="text-3xl font-bold text-foreground">BusinessPlus</h1>
           </div>

@@ -121,7 +121,7 @@ export default function LandingPage() {
         {/* Logo & Title - Top Center */}
         <div className="flex flex-col items-center justify-center mb-12 relative z-10">
           <div className="flex items-center justify-center w-20 h-20 ">
-            <img src="public/images/logo/businesspluslogo.png" alt="" />
+            <img src="/images/logo/businesspluslogo.png" alt="" />
           </div>
           <h1 className="text-6xl font-bold mb-3">
             <span className="text-foreground">Business</span>
@@ -246,7 +246,7 @@ export default function LandingPage() {
         {/* Mobile Logo - Only visible on mobile */}
         <div className="lg:hidden absolute top-6 left-1/2 transform -translate-x-1/2 flex items-center gap-2">
           <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-lg">
-            <img src="public/images/logo/businesspluslogo.png" alt="" />
+            <img src="/images/logo/businesspluslogo.png" alt="" />
           </div>
           <h1 className="text-2xl font-bold">
             <span className="text-foreground">Business</span>
