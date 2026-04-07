@@ -78,7 +78,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
     {/* Items Table */}
     <div className="mb-8">
-      <table className="w-full">
+      <table className="w-full" style={{ minWidth: '700px' }}>
         <thead>
           <tr className="border-b-2 border-gray-900">
             <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-12">#</th>
@@ -221,13 +221,21 @@ export default function ViewBillPage() {
     pageStyle: `
       @page {
         size: A4;
-        margin: 0.5cm;
+        margin: 0; /* मार्जिन इथे ० करा, बिल-कॉपीमध्ये पॅडिंग आहेच */
       }
-      body {
-        margin: 0;
-        padding: 0;
-        -webkit-print-color-adjust: exact;
-        color-adjust: exact;
+      @media print {
+        body {
+          margin: 0;
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
+        }
+        .bill-copy {
+          width: 210mm !important; /* A4 विड्थ फिक्स करा */
+          min-height: 297mm;
+          margin: 0 auto !important;
+          page-break-after: always !important;
+        }
       }
     `,
   });
@@ -273,9 +281,23 @@ export default function ViewBillPage() {
       </div>
 
       {/* Printable Content */}
-      <div ref={printRef} className="bg-white w-full max-w-[210mm] mx-auto border border-gray-200 rounded-lg overflow-hidden">
+      
+      <div ref={printRef} className="bg-white w-full max-w-[210mm] mx-auto border border-gray-200 rounded-lg overflow-x-auto md:overflow-hidden">
         <style>
           {`
+            /* मोबाईल स्क्रीनवर बिल डेस्कटॉपसारखे दिसण्यासाठी */
+            @media screen and (max-width: 768px) {
+              .screen-content {
+                width: 210mm; /* A4 विड्थ फोर्स करा */
+                transform: scale(0.4); /* स्क्रीनवर फिट करण्यासाठी झूम कमी करा */
+                transform-origin: top left;
+              }
+              /* कंटेनरची हाईट ॲडजस्ट करण्यासाठी */
+              .max-w-\[210mm\] {
+                height: 1200px; /* मोबाईलवर स्क्रोल करण्यासाठी पुरेशी उंची */
+              }
+            }
+
             @media print {
               .bill-copy {
                 width: 210mm;
@@ -288,28 +310,11 @@ export default function ViewBillPage() {
               .bill-copy:last-child {
                 page-break-after: auto;
               }
-              @page {
-                size: A4;
-                margin: 0.5cm;
-              }
-              html, body {
-                width: auto;
-                min-width: 0;
-                margin: 0;
-                padding: 0;
-              }
-            }
-            @media screen {
-              .screen-content { max-width: 210mm; }
-              .bill-copy {
-                margin-bottom: 2rem;
-              }
-              .bill-copy:last-child {
-                margin-bottom: 0;
-              }
             }
           `}
         </style>
+        
+          
         <div className="screen-content">
           {/* Original Copy */}
           <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
