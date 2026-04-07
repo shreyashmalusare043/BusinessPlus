@@ -10,7 +10,6 @@ import { useReactToPrint } from 'react-to-print';
 import { Watermark } from '@/components/ui/watermark';
 import { useAuth } from '@/contexts/AuthContext';
 import type { DeliveryChallanWithItems, Company } from '@/types';
-import '@/styles/responsive-bill-challan.css';
 
 const purposeLabels: Record<string, string> = {
   job_work: 'Job Work',

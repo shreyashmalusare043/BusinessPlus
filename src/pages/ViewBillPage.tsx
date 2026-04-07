@@ -8,7 +8,6 @@ import { useReactToPrint } from 'react-to-print';
 import { Watermark } from '@/components/ui/watermark';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BillWithItems, Company } from '@/types';
-import '@/styles/responsive-bill-challan.css';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
