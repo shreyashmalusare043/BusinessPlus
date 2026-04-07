@@ -310,7 +310,6 @@ export default function ViewBillPage() {
         
         {/* Watermark - Only show for free users */}
         {showWatermark && <Watermark type="bill" />}
-      </div>
     </div>
   );
 }
