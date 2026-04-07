@@ -11,7 +11,7 @@ import type { BillWithItems, Company } from '@/types';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white border border-gray-300 p-5 box-border max-w-[210mm]">
+  <div className="bill-copy bg-white border border-gray-300 p-5">
     {/* Header Section */}
     <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-300">
       {/* Company Info */}
@@ -223,16 +223,11 @@ export default function ViewBillPage() {
         size: A4;
         margin: 0.5cm;
       }
-      html, body {
-        width: 210mm;
+      body {
         margin: 0;
         padding: 0;
         -webkit-print-color-adjust: exact;
         color-adjust: exact;
-      }
-      body * {
-        -webkit-print-color-adjust: exact !important;
-        color-adjust: exact !important;
       }
     `,
   });
@@ -283,13 +278,10 @@ export default function ViewBillPage() {
           {`
             @media print {
               .bill-copy {
-                width: 210mm;
-                max-width: 210mm;
                 page-break-after: always;
                 page-break-inside: avoid;
                 margin: 0;
                 border: none !important;
-                padding: 20px;
                 box-sizing: border-box;
               }
               .bill-copy:last-child {
@@ -299,21 +291,11 @@ export default function ViewBillPage() {
                 size: A4;
                 margin: 0.5cm;
               }
-              html, body {
-                width: 210mm;
-                margin: 0;
-                padding: 0;
-              }
-              body * {
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
             }
             @media screen {
               .screen-content { max-width: 210mm; }
               .bill-copy {
                 margin-bottom: 2rem;
-                border: 1px solid #e5e7eb !important;
               }
               .bill-copy:last-child {
                 margin-bottom: 0;
