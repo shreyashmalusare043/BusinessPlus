@@ -9,128 +9,128 @@ import { Watermark } from '@/components/ui/watermark';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BillWithItems, Company } from '@/types';
 
-// Bill Copy Component - Minimalist Corporate Style
+// Bill Copy Component - Minimalist Corporate Style  
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', marginBottom: '2rem', padding: '40px' }}>
-    {/* Header Section */}
-    <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-gray-200">
+  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', marginBottom: '2rem', padding: '20px md:40px' }}>
+    {/* Header Section - Responsive */}
+    <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
-      <div className="flex gap-3 items-start">
+      <div className="flex gap-2 md:gap-3 items-start flex-1">
         {company.logo_url && (
-          <img src={company.logo_url} alt="Logo" className="h-20 w-20 object-contain flex-shrink-0" />
+          <img src={company.logo_url} alt="Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain flex-shrink-0" />
         )}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
-          <div className="text-sm text-gray-600 space-y-0.5">
-            <p>{company.address}</p>
-            <p>Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
-            {company.website && <p>Website: {company.website}</p>}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 break-words">{company.company_name}</h1>
+          <div className="text-xs md:text-sm text-gray-600 space-y-0.5">
+            <p className="break-words">{company.address}</p>
+            <p className="break-words">Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
+            {company.website && <p className="break-words">Website: {company.website}</p>}
             <p className="font-semibold text-gray-800 mt-1">GSTIN: {company.gst_number}</p>
           </div>
         </div>
       </div>
 
-      {/* Invoice Title & Copy Type */}
-      <div className="text-right">
-        <h2 className="text-4xl font-bold text-primary mb-2">INVOICE</h2>
-        <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
+      {/* Invoice Title & Copy Type - Responsive */}
+      <div className="text-right flex-shrink-0">
+        <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">INVOICE</h2>
+        <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-2 md:px-3 py-1 uppercase tracking-wide">
           {copyType}
         </span>
       </div>
     </div>
 
-    {/* Bill Info Section */}
-    <div className="grid grid-cols-2 gap-8 mb-8">
+    {/* Bill Info Section - Responsive Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8">
       {/* Bill To */}
-      <div>
+      <div className="min-w-0">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Bill To</p>
-        <p className="text-lg font-bold text-gray-900 mb-2">{bill.customer_name}</p>
+        <p className="text-base md:text-lg font-bold text-gray-900 mb-2 break-words">{bill.customer_name}</p>
         {bill.customer_address && (
-          <p className="text-sm text-gray-600 mb-1">{bill.customer_address}</p>
+          <p className="text-xs md:text-sm text-gray-600 mb-1 break-words">{bill.customer_address}</p>
         )}
         {bill.customer_gst_number && (
-          <p className="text-sm text-gray-700">
+          <p className="text-xs md:text-sm text-gray-700 break-words">
             <span className="font-semibold">GST No:</span> {bill.customer_gst_number}
           </p>
         )}
       </div>
 
-      {/* Invoice Details */}
-      <div className="text-right">
+      {/* Invoice Details - Responsive */}
+      <div className="text-left md:text-right">
         <div className="space-y-1">
-          <div className="flex justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Invoice No:</span>
-            <span className="text-sm font-bold text-gray-900">{bill.bill_no}</span>
+          <div className="flex flex-col md:flex-row justify-start md:justify-end md:gap-4 gap-1">
+            <span className="text-xs md:text-sm font-semibold text-gray-500">Invoice No:</span>
+            <span className="text-xs md:text-sm font-bold text-gray-900">{bill.bill_no}</span>
           </div>
-          <div className="flex justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Invoice Date:</span>
-            <span className="text-sm font-bold text-gray-900">{new Date(bill.bill_date).toLocaleDateString()}</span>
+          <div className="flex flex-col md:flex-row justify-start md:justify-end md:gap-4 gap-1">
+            <span className="text-xs md:text-sm font-semibold text-gray-500">Invoice Date:</span>
+            <span className="text-xs md:text-sm font-bold text-gray-900">{new Date(bill.bill_date).toLocaleDateString()}</span>
           </div>
           {bill.po_number && (
-            <div className="flex justify-end gap-4">
-              <span className="text-sm font-semibold text-gray-500">P.O. No:</span>
-              <span className="text-sm font-bold text-gray-900">{bill.po_number}</span>
+            <div className="flex flex-col md:flex-row justify-start md:justify-end md:gap-4 gap-1">
+              <span className="text-xs md:text-sm font-semibold text-gray-500">P.O. No:</span>
+              <span className="text-xs md:text-sm font-bold text-gray-900">{bill.po_number}</span>
             </div>
           )}
         </div>
       </div>
     </div>
 
-    {/* Items Table */}
-    <div className="mb-8">
-      <table className="w-full">
+    {/* Items Table - Responsive */}
+    <div className="mb-8 overflow-x-auto">
+      <table className="w-full text-xs md:text-sm">
         <thead>
           <tr className="border-b-2 border-gray-900">
-            <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-12">#</th>
-            <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide">Description</th>
-            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-24">HSN/SAC</th>
-            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16">Qty</th>
-            <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-24">Rate</th>
-            <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-28">Amount</th>
+            <th className="py-2 md:py-3 px-1 md:px-2 text-left font-bold text-gray-900 uppercase tracking-wide w-8 md:w-12">#</th>
+            <th className="py-2 md:py-3 px-1 md:px-2 text-left font-bold text-gray-900 uppercase tracking-wide">Description</th>
+            <th className="py-2 md:py-3 px-1 md:px-2 text-center font-bold text-gray-900 uppercase tracking-wide w-16 md:w-24">HSN/SAC</th>
+            <th className="py-2 md:py-3 px-1 md:px-2 text-center font-bold text-gray-900 uppercase tracking-wide w-12 md:w-16">Qty</th>
+            <th className="py-2 md:py-3 px-1 md:px-2 text-right font-bold text-gray-900 uppercase tracking-wide w-16 md:w-24">Rate</th>
+            <th className="py-2 md:py-3 px-1 md:px-2 text-right font-bold text-gray-900 uppercase tracking-wide w-16 md:w-28">Amount</th>
           </tr>
         </thead>
         <tbody>
           {bill.bill_items.map((item: any, index: number) => (
             <tr key={item.id} className="border-b border-gray-200">
-              <td className="py-3 px-2 text-sm text-gray-600">{index + 1}</td>
-              <td className="py-3 px-2 text-sm font-medium text-gray-900">{item.item_name}</td>
-              <td className="py-3 px-2 text-sm text-center text-gray-600">{item.hsn_code}</td>
-              <td className="py-3 px-2 text-sm text-center text-gray-600">{item.quantity}</td>
-              <td className="py-3 px-2 text-sm text-right text-gray-600">₹{item.unit_price.toFixed(2)}</td>
-              <td className="py-3 px-2 text-sm text-right font-semibold text-gray-900">₹{item.line_total.toFixed(2)}</td>
+              <td className="py-2 md:py-3 px-1 md:px-2 text-gray-600">{index + 1}</td>
+              <td className="py-2 md:py-3 px-1 md:px-2 font-medium text-gray-900 break-words">{item.item_name}</td>
+              <td className="py-2 md:py-3 px-1 md:px-2 text-center text-gray-600">{item.hsn_code}</td>
+              <td className="py-2 md:py-3 px-1 md:px-2 text-center text-gray-600">{item.quantity}</td>
+              <td className="py-2 md:py-3 px-1 md:px-2 text-right text-gray-600">₹{item.unit_price.toFixed(2)}</td>
+              <td className="py-2 md:py-3 px-1 md:px-2 text-right font-semibold text-gray-900">₹{item.line_total.toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
 
-    {/* Summary Section */}
+    {/* Summary Section - Responsive */}
     <div className="flex justify-end mb-8">
-      <div className="w-80">
-        <div className="space-y-2">
-          <div className="flex justify-between py-2 text-sm border-b border-gray-200">
-            <span className="text-gray-600">Subtotal</span>
+      <div className="w-full md:w-80 max-w-xs md:max-w-sm">
+        <div className="space-y-2 text-xs md:text-sm">
+          <div className="flex justify-between py-2 text-xs md:text-sm border-b border-gray-200">
+            <span className="text-gray-600">Subtotal:</span>
             <span className="font-medium text-gray-900">₹{bill.subtotal.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between py-2 text-sm border-b border-gray-200">
+          <div className="flex justify-between py-2 text-xs md:text-sm border-b border-gray-200">
             <span className="text-gray-600">CGST (9%)</span>
             <span className="font-medium text-gray-900">₹{bill.total_cgst.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between py-2 text-sm border-b border-gray-200">
+          <div className="flex justify-between py-2 text-xs md:text-sm border-b border-gray-200">
             <span className="text-gray-600">SGST (9%)</span>
             <span className="font-medium text-gray-900">₹{bill.total_sgst.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between py-3 bg-primary text-primary-foreground px-4 mt-2">
-            <span className="font-bold text-base">Total Amount</span>
-            <span className="font-bold text-xl">₹{bill.grand_total.toFixed(2)}</span>
+          <div className="flex justify-between py-2 md:py-3 bg-primary text-primary-foreground px-2 md:px-4 mt-2">
+            <span className="font-bold text-sm md:text-base">Total Amount</span>
+            <span className="font-bold text-base md:text-xl">₹{bill.grand_total.toFixed(2)}</span>
           </div>
         </div>
       </div>
     </div>
 
-    {/* Bank Details & Footer */}
+    {/* Bank Details & Footer - Responsive */}
     <div className="border-t-2 border-gray-200 pt-6">
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         {/* Bank Details */}
         <div>
           {(company.bank_name || company.account_number) && (
@@ -138,19 +138,19 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
               <p className="text-xs font-bold text-gray-900 uppercase tracking-wide mb-3">Bank Details</p>
               <div className="text-xs text-gray-600 space-y-1">
                 {company.bank_name && (
-                  <p><span className="font-semibold text-gray-700">Bank:</span> {company.bank_name}</p>
+                  <p className="break-words"><span className="font-semibold text-gray-700">Bank:</span> {company.bank_name}</p>
                 )}
                 {company.account_holder_name && (
-                  <p><span className="font-semibold text-gray-700">Account Holder:</span> {company.account_holder_name}</p>
+                  <p className="break-words"><span className="font-semibold text-gray-700">Account Holder:</span> {company.account_holder_name}</p>
                 )}
                 {company.account_number && (
-                  <p><span className="font-semibold text-gray-700">Account No:</span> {company.account_number}</p>
+                  <p className="break-words"><span className="font-semibold text-gray-700">Account No:</span> {company.account_number}</p>
                 )}
                 {company.ifsc_code && (
-                  <p><span className="font-semibold text-gray-700">IFSC:</span> {company.ifsc_code}</p>
+                  <p className="break-words"><span className="font-semibold text-gray-700">IFSC:</span> {company.ifsc_code}</p>
                 )}
                 {company.branch_name && (
-                  <p><span className="font-semibold text-gray-700">Branch:</span> {company.branch_name}</p>
+                  <p className="break-words"><span className="font-semibold text-gray-700">Branch:</span> {company.branch_name}</p>
                 )}
               </div>
             </>
@@ -158,9 +158,9 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
         </div>
 
         {/* Signature */}
-        <div className="text-right">
-          <p className="text-xs font-semibold text-gray-600 mb-16">For {company.company_name}</p>
-          <div className="inline-block border-t-2 border-gray-900 pt-2 px-8">
+        <div className="text-left md:text-right">
+          <p className="text-xs font-semibold text-gray-600 mb-12 md:mb-16">For {company.company_name}</p>
+          <div className="inline-block border-t-2 border-gray-900 pt-2 px-4 md:px-8">
             <p className="text-xs font-bold text-gray-900 uppercase tracking-wide">Authorized Signature</p>
           </div>
         </div>
@@ -169,7 +169,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
     {/* Thank You Note */}
     <div className="text-center mt-8 pt-6 border-t border-gray-200">
-      <p className="text-sm font-semibold text-gray-600">Thank you for your business!</p>
+      <p className="text-xs md:text-sm font-semibold text-gray-600">Thank you for your business!</p>
     </div>
   </div>
 );

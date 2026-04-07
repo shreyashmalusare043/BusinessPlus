@@ -27,131 +27,131 @@ const purposeDeclarations: Record<string, string> = {
   branch_transfer: 'Goods transferred to Branch and not for sale.',
 };
 
-// Challan Copy Component
+// Challan Copy Component - Responsive
 const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanWithItems; company: Company; copyType: string }) => (
-  <div className="challan-copy bg-white" style={{ pageBreakAfter: 'always', marginBottom: '2rem', padding: '40px' }}>
-    {/* Header Section */}
-    <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-gray-200">
+  <div className="challan-copy bg-white" style={{ pageBreakAfter: 'always', marginBottom: '2rem', padding: '20px md:40px' }}>
+    {/* Header Section - Responsive */}
+    <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
-      <div className="flex gap-3 items-start">
+      <div className="flex gap-2 md:gap-3 items-start flex-1">
         {company.logo_url && (
-          <img src={company.logo_url} alt="Logo" className="h-20 w-20 object-contain flex-shrink-0" />
+          <img src={company.logo_url} alt="Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain flex-shrink-0" />
         )}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
-          <div className="text-sm text-gray-600 space-y-0.5">
-            <p>{company.address}</p>
-            <p>Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 break-words">{company.company_name}</h1>
+          <div className="text-xs md:text-sm text-gray-600 space-y-0.5">
+            <p className="break-words">{company.address}</p>
+            <p className="break-words">Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
             <p className="font-semibold text-gray-800 mt-1">GSTIN: {company.gst_number}</p>
           </div>
         </div>
       </div>
 
-      {/* Challan Title & Copy Type */}
-      <div className="text-right">
-        <h2 className="text-4xl font-bold text-primary mb-2">DELIVERY CHALLAN</h2>
-        <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
+      {/* Challan Title & Copy Type - Responsive */}
+      <div className="text-right flex-shrink-0">
+        <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">DELIVERY CHALLAN</h2>
+        <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-2 md:px-3 py-1 uppercase tracking-wide">
           {copyType}
         </span>
       </div>
     </div>
 
-    {/* Challan Info Section */}
-    <div className="grid grid-cols-2 gap-8 mb-8">
+    {/* Challan Info Section - Responsive Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8">
       {/* Consignee Details */}
-      <div>
+      <div className="min-w-0">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Consignee / Party Details</p>
-        <p className="text-lg font-bold text-gray-900 mb-2">{challan.party_name}</p>
-        {challan.party_address && <p className="text-sm text-gray-600 mb-1">{challan.party_address}</p>}
-        <div className="text-sm text-gray-600 mt-2 space-y-0.5">
-          {challan.party_gst && <p><span className="font-semibold">GSTIN:</span> {challan.party_gst}</p>}
-          {challan.party_state && <p><span className="font-semibold">State:</span> {challan.party_state}</p>}
+        <p className="text-base md:text-lg font-bold text-gray-900 mb-2 break-words">{challan.party_name}</p>
+        {challan.party_address && <p className="text-xs md:text-sm text-gray-600 mb-1 break-words">{challan.party_address}</p>}
+        <div className="text-xs md:text-sm text-gray-600 mt-2 space-y-0.5">
+          {challan.party_gst && <p className="break-words"><span className="font-semibold">GSTIN:</span> {challan.party_gst}</p>}
+          {challan.party_state && <p className="break-words"><span className="font-semibold">State:</span> {challan.party_state}</p>}
         </div>
       </div>
 
-      {/* Challan Details */}
-      <div className="text-right">
+      {/* Challan Details - Responsive */}
+      <div className="text-left md:text-right">
         <div className="space-y-1">
-          <div className="flex justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Challan No:</span>
-            <span className="text-sm font-bold text-gray-900">{challan.challan_no}</span>
+          <div className="flex flex-col md:flex-row justify-start md:justify-end md:gap-4 gap-1">
+            <span className="text-xs md:text-sm font-semibold text-gray-500">Challan No:</span>
+            <span className="text-xs md:text-sm font-bold text-gray-900">{challan.challan_no}</span>
           </div>
-          <div className="flex justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Date:</span>
-            <span className="text-sm font-bold text-gray-900">{new Date(challan.challan_date).toLocaleDateString()}</span>
+          <div className="flex flex-col md:flex-row justify-start md:justify-end md:gap-4 gap-1">
+            <span className="text-xs md:text-sm font-semibold text-gray-500">Date:</span>
+            <span className="text-xs md:text-sm font-bold text-gray-900">{new Date(challan.challan_date).toLocaleDateString()}</span>
           </div>
-          <div className="flex justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Place of Supply:</span>
-            <span className="text-sm font-bold text-gray-900">{challan.place_of_supply}</span>
+          <div className="flex flex-col md:flex-row justify-start md:justify-end md:gap-4 gap-1 break-words">
+            <span className="text-xs md:text-sm font-semibold text-gray-500">Place of Supply:</span>
+            <span className="text-xs md:text-sm font-bold text-gray-900">{challan.place_of_supply}</span>
           </div>
-          <div className="flex justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Purpose:</span>
-            <span className="text-sm font-bold text-primary">{purposeLabels[challan.purpose]}</span>
+          <div className="flex flex-col md:flex-row justify-start md:justify-end md:gap-4 gap-1">
+            <span className="text-xs md:text-sm font-semibold text-gray-500">Purpose:</span>
+            <span className="text-xs md:text-sm font-bold text-primary">{purposeLabels[challan.purpose]}</span>
           </div>
         </div>
       </div>
     </div>
 
-    {/* Items Table */}
-    <div className="mb-8">
-      <table className="w-full text-sm">
+    {/* Items Table - Responsive */}
+    <div className="mb-8 overflow-x-auto">
+      <table className="w-full text-xs md:text-sm">
         <thead>
           <tr className="border-b-2 border-gray-900">
-            <th className="py-2 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-10">#</th>
-            <th className="py-2 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide">Item Name</th>
-            <th className="py-2 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide">Description</th>
-            <th className="py-2 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-20">HSN/SAC</th>
-            <th className="py-2 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16">Qty</th>
-            <th className="py-2 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16">Unit</th>
+            <th className="py-2 md:py-2 px-1 md:px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-8 md:w-10">#</th>
+            <th className="py-2 md:py-2 px-1 md:px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide">Item Name</th>
+            <th className="py-2 md:py-2 px-1 md:px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide hidden md:table-cell">Description</th>
+            <th className="py-2 md:py-2 px-1 md:px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16 md:w-20">HSN/SAC</th>
+            <th className="py-2 md:py-2 px-1 md:px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-12 md:w-16">Qty</th>
+            <th className="py-2 md:py-2 px-1 md:px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-12 md:w-16">Unit</th>
           </tr>
         </thead>
         <tbody>
           {challan.challan_items.map((item, index) => (
             <tr key={item.id} className="border-b border-gray-200">
-              <td className="py-2 px-2 text-gray-600">{index + 1}</td>
-              <td className="py-2 px-2 font-medium text-gray-900">{item.item_name}</td>
-              <td className="py-2 px-2 text-gray-600">{item.description || '-'}</td>
-              <td className="py-2 px-2 text-center text-gray-600">{item.hsn_code || '-'}</td>
-              <td className="py-2 px-2 text-center text-gray-600">{item.quantity}</td>
-              <td className="py-2 px-2 text-center text-gray-600">{item.unit}</td>
+              <td className="py-2 md:py-2 px-1 md:px-2 text-gray-600">{index + 1}</td>
+              <td className="py-2 md:py-2 px-1 md:px-2 font-medium text-gray-900 break-words">{item.item_name}</td>
+              <td className="py-2 md:py-2 px-1 md:px-2 text-gray-600 hidden md:table-cell break-words">{item.description || '-'}</td>
+              <td className="py-2 md:py-2 px-1 md:px-2 text-center text-gray-600">{item.hsn_code || '-'}</td>
+              <td className="py-2 md:py-2 px-1 md:px-2 text-center text-gray-600">{item.quantity}</td>
+              <td className="py-2 md:py-2 px-1 md:px-2 text-center text-gray-600">{item.unit}</td>
             </tr>
           ))}
           {/* Empty rows for spacing */}
           {challan.challan_items.length < 5 && Array.from({ length: 5 - challan.challan_items.length }).map((_, i) => (
             <tr key={`empty-${i}`} className="border-b border-gray-200">
-              <td className="py-2 px-2 h-8">&nbsp;</td>
-              <td className="py-2 px-2">&nbsp;</td>
-              <td className="py-2 px-2">&nbsp;</td>
-              <td className="py-2 px-2">&nbsp;</td>
-              <td className="py-2 px-2">&nbsp;</td>
-              <td className="py-2 px-2">&nbsp;</td>
+              <td className="py-2 md:py-2 px-1 md:px-2 h-8">&nbsp;</td>
+              <td className="py-2 md:py-2 px-1 md:px-2">&nbsp;</td>
+              <td className="py-2 md:py-2 px-1 md:px-2 hidden md:table-cell">&nbsp;</td>
+              <td className="py-2 md:py-2 px-1 md:px-2">&nbsp;</td>
+              <td className="py-2 md:py-2 px-1 md:px-2">&nbsp;</td>
+              <td className="py-2 md:py-2 px-1 md:px-2">&nbsp;</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
 
-    {/* Declaration */}
-    <div className="mb-8 p-3 bg-gray-50 border border-gray-200 rounded">
+    {/* Declaration - Responsive */}
+    <div className="mb-8 p-2 md:p-3 bg-gray-50 border border-gray-200 rounded">
       <p className="text-xs font-bold text-gray-900 uppercase mb-1">Declaration:</p>
-      <p className="text-sm text-gray-700">{purposeDeclarations[challan.purpose]}</p>
+      <p className="text-xs md:text-sm text-gray-700 break-words">{purposeDeclarations[challan.purpose]}</p>
     </div>
 
-    {/* Footer - Signature Section */}
+    {/* Footer - Signature Section - Responsive */}
     <div className="border-t-2 border-gray-200 pt-6">
-      <div className="grid grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-12">
         {/* Prepared By */}
         <div>
-          <p className="text-xs font-semibold text-gray-600 mb-12">Prepared By</p>
-          <div className="inline-block border-t-2 border-gray-900 pt-2 px-8">
+          <p className="text-xs font-semibold text-gray-600 mb-8 md:mb-12">Prepared By</p>
+          <div className="inline-block border-t-2 border-gray-900 pt-2 px-4 md:px-8">
             <p className="text-xs font-bold text-gray-900 uppercase tracking-wide">Signature</p>
           </div>
         </div>
 
         {/* Authorized Signatory */}
-        <div className="text-right">
-          <p className="text-xs font-semibold text-gray-600 mb-12">For {company.company_name}</p>
-          <div className="inline-block border-t-2 border-gray-900 pt-2 px-8">
+        <div className="text-left md:text-right">
+          <p className="text-xs font-semibold text-gray-600 mb-8 md:mb-12">For {company.company_name}</p>
+          <div className="inline-block border-t-2 border-gray-900 pt-2 px-4 md:px-8">
             <p className="text-xs font-bold text-gray-900 uppercase tracking-wide">Authorized Signatory</p>
           </div>
         </div>
