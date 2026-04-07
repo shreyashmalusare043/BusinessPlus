@@ -278,10 +278,11 @@ export default function ViewBillPage() {
           {`
             @media print {
               .bill-copy {
+                width: 210mm;
+                max-width: 210mm;
                 page-break-after: always;
                 page-break-inside: avoid;
-                margin: 0;
-                border: none !important;
+                margin: 0 auto;
                 box-sizing: border-box;
               }
               .bill-copy:last-child {
@@ -290,6 +291,12 @@ export default function ViewBillPage() {
               @page {
                 size: A4;
                 margin: 0.5cm;
+              }
+              html, body {
+                width: auto;
+                min-width: 0;
+                margin: 0;
+                padding: 0;
               }
             }
             @media screen {
