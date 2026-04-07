@@ -11,16 +11,16 @@ import type { BillWithItems, Company } from '@/types';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', marginBottom: '2rem', padding: '40px' }}>
+  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', marginBottom: '2rem', padding: '16px' }}>
     {/* Header Section */}
-    <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-gray-200">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200">
       {/* Company Info */}
       <div className="flex gap-3 items-start">
         {company.logo_url && (
           <img src={company.logo_url} alt="Logo" className="h-20 w-20 object-contain flex-shrink-0" />
         )}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
           <div className="text-sm text-gray-600 space-y-0.5">
             <p>{company.address}</p>
             <p>Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
@@ -40,7 +40,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
     </div>
 
     {/* Bill Info Section */}
-    <div className="grid grid-cols-2 gap-8 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8">
       {/* Bill To */}
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Bill To</p>
@@ -77,8 +77,8 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
     </div>
 
     {/* Items Table */}
-    <div className="mb-8">
-      <table className="w-full">
+<div className="mb-8 overflow-x-auto">
+  <table className="w-full min-w-[600px]">
         <thead>
           <tr className="border-b-2 border-gray-900">
             <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-12">#</th>
@@ -106,7 +106,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
     {/* Summary Section */}
     <div className="flex justify-end mb-8">
-      <div className="w-80">
+  <div className="w-80">
         <div className="space-y-2">
           <div className="flex justify-between py-2 text-sm border-b border-gray-200">
             <span className="text-gray-600">Subtotal</span>
@@ -130,7 +130,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
     {/* Bank Details & Footer */}
     <div className="border-t-2 border-gray-200 pt-6">
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         {/* Bank Details */}
         <div>
           {(company.bank_name || company.account_number) && (
