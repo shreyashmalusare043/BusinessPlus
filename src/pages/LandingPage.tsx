@@ -245,7 +245,7 @@ export default function LandingPage() {
       <div className="w-full lg:w-1/2 bg-background flex items-center justify-center p-4 lg:p-8 relative">
         {/* Mobile Logo - Only visible on mobile */}
         <div className="lg:hidden absolute top-6 left-1/2 transform -translate-x-1/2 flex items-center gap-2">
-          <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-lg">
+          <div className="flex items-center justify-center w-10 h-10 ">
             <img src="/images/logo/businesspluslogo.png" alt="" />
           </div>
           <h1 className="text-2xl font-bold">
