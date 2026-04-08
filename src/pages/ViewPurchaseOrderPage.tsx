@@ -50,7 +50,7 @@ export default function ViewPurchaseOrderPage() {
   };
 
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef,
   });
 
   const handleDownloadPDF = async () => {

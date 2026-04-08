@@ -172,7 +172,7 @@ export default function ViewChallanPage() {
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef,
   });
 
   const handleDownloadPDF = async () => {

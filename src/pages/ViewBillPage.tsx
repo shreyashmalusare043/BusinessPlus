@@ -217,7 +217,7 @@ export default function ViewBillPage() {
   };
 
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef,
   });
 
   const handleDownloadPDF = async () => {
