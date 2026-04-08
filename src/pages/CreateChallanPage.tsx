@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react';
+import { Crown, Loader2, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { toast } from 'sonner';
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { toast } from 'sonner';
-import { createChallan, getMyCustomers, checkSubscriptionStatus } from '@/db/api';
-import { Loader2, Plus, Trash2, Crown } from 'lucide-react';
-import type { DeliveryChallanForm, DeliveryChallanItemForm, Customer } from '@/types';
+import { checkSubscriptionStatus, createChallan, getMyCustomers } from '@/db/api';
+import type { Customer, DeliveryChallanForm } from '@/types';
 
 const purposeOptions = [
   { value: 'job_work', label: 'Job Work' },
@@ -326,116 +327,113 @@ export default function CreateChallanPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="hidden md:table-header-group">
-                    <TableRow>
-                      <TableHead className="w-[200px]">Item Name</TableHead>
-                      <TableHead className="hidden lg:table-cell w-[250px]">Description</TableHead>
-                      <TableHead className="w-[120px]">HSN/SAC</TableHead>
-                      <TableHead className="w-[100px]">Quantity</TableHead>
-                      <TableHead className="w-[100px]">Unit</TableHead>
-                      <TableHead className="w-[80px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fields.map((field, index) => (
-                      <TableRow key={field.id} className="block md:table-row border-b md:border-b mb-4 md:mb-0 pb-4 md:pb-0">
-                        <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['Item:'] before:font-bold before:mr-2 md:before:content-none">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.item_name`}
-                            rules={{ required: 'Required' }}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input {...field} placeholder="Item name" className="text-sm" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell className="hidden lg:block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['Desc:'] before:font-bold before:mr-2 md:before:content-none">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.description`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input {...field} placeholder="Description" className="text-sm" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['HSN:'] before:font-bold before:mr-2 md:before:content-none">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.hsn_code`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input {...field} placeholder="HSN/SAC" className="text-sm" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['Qty:'] before:font-bold before:mr-2 md:before:content-none">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.quantity`}
-                            rules={{ required: 'Required', min: { value: 0.01, message: 'Must be > 0' } }}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    type="number"
-                                    step="0.01"
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                                    className="text-sm"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell className="block md:table-cell text-sm md:text-base pb-2 md:pb-0 before:content-['Unit:'] before:font-bold before:mr-2 md:before:content-none">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.unit`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input {...field} placeholder="Unit" className="text-sm" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell className="block md:table-cell text-right md:text-center">
-                          {fields.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => remove(index)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[200px]">Item Name</TableHead>
+                    <TableHead className="w-[250px]">Description</TableHead>
+                    <TableHead className="w-[120px]">HSN/SAC</TableHead>
+                    <TableHead className="w-[100px]">Quantity</TableHead>
+                    <TableHead className="w-[100px]">Unit</TableHead>
+                    <TableHead className="w-[80px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {fields.map((field, index) => (
+                    <TableRow key={field.id}>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.item_name`}
+                          rules={{ required: 'Required' }}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} placeholder="Item name" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
                           )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.description`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} placeholder="Description" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.hsn_code`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} placeholder="HSN/SAC" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.quantity`}
+                          rules={{ required: 'Required', min: { value: 0.01, message: 'Must be > 0' } }}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  step="0.01"
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.unit`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} placeholder="Unit" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {fields.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => remove(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
 
