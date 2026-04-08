@@ -144,10 +144,10 @@ export default function CreatePurchaseOrderPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Create Purchase Order</h1>
-        <Button variant="outline" onClick={() => navigate('/purchase-orders')}>
+    <div className="space-y-6 px-4 md:px-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">Create Purchase Order</h1>
+        <Button variant="outline" onClick={() => navigate('/purchase-orders')} className="w-full sm:w-auto">
           Cancel
         </Button>
       </div>
@@ -261,7 +261,7 @@ export default function CreatePurchaseOrderPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Supplier Selection Dropdown */}
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1">
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Select Supplier
@@ -279,7 +279,7 @@ export default function CreatePurchaseOrderPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="button" variant="outline" className="mt-6" onClick={() => setShowNewSupplierDialog(true)}>
+                <Button type="button" variant="outline" className="sm:mt-6 w-full sm:w-auto" onClick={() => setShowNewSupplierDialog(true)}>
                   <TruckIcon className="h-4 w-4 mr-2" />
                   Add New
                 </Button>
@@ -402,20 +402,21 @@ export default function CreatePurchaseOrderPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item Name</TableHead>
-                      <TableHead>HSN Code</TableHead>
-                      <TableHead className="w-24">Qty</TableHead>
-                      <TableHead className="w-32">Unit Price</TableHead>
-                      <TableHead className="w-24">CGST %</TableHead>
-                      <TableHead className="w-24">SGST %</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="w-16"></TableHead>
-                    </TableRow>
-                  </TableHeader>
+              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+                <div className="inline-block min-w-full align-middle">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[150px]">Item Name</TableHead>
+                        <TableHead className="min-w-[100px]">HSN Code</TableHead>
+                        <TableHead className="w-24 min-w-[80px]">Qty</TableHead>
+                        <TableHead className="w-32 min-w-[100px]">Unit Price</TableHead>
+                        <TableHead className="w-24 min-w-[80px]">CGST %</TableHead>
+                        <TableHead className="w-24 min-w-[80px]">SGST %</TableHead>
+                        <TableHead className="text-right min-w-[100px]">Total</TableHead>
+                        <TableHead className="w-16 min-w-[60px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {fields.map((field, index) => {
                       const item = form.watch(`items.${index}`);
@@ -542,6 +543,7 @@ export default function CreatePurchaseOrderPage() {
                     })}
                   </TableBody>
                 </Table>
+                </div>
               </div>
 
               <div className="mt-6 flex justify-end">
@@ -567,11 +569,11 @@ export default function CreatePurchaseOrderPage() {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => navigate('/purchase-orders')}>
+          <div className="flex flex-col sm:flex-row justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => navigate('/purchase-orders')} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Purchase Order
             </Button>

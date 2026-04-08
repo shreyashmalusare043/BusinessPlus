@@ -1,225 +1,214 @@
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Lock, Eye, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function PrivacyPolicyPage() {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <div className="container mx-auto py-12 px-4 max-w-5xl">
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <div className="p-4 bg-primary/10 rounded-full">
-              <Shield className="h-12 w-12 text-primary" />
-            </div>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Privacy Policy
-          </h1>
-          <p className="text-muted-foreground text-lg">Your privacy is our priority</p>
-          <p className="text-sm text-muted-foreground mt-2">Last Updated: March 21, 2026</p>
-        </div>
-
-        <Card className="shadow-xl border-2">
-          <CardContent className="prose prose-sm max-w-none space-y-8 pt-8">
-            <section className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-lg border-l-4 border-primary">
-            <div className="flex items-start gap-4">
-              <FileText className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-semibold mb-3 text-foreground">1. Introduction</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  Welcome to BusinessPlus. We are committed to protecting your personal information and your right to privacy. 
-                  This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use 
-                  our Internal Billing Management System.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-card p-6 rounded-lg border">
-            <div className="flex items-start gap-4">
-              <Eye className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-semibold mb-4 text-foreground">2. Information We Collect</h2>
-                <p className="text-muted-foreground mb-3">We collect information that you provide directly to us:</p>
-                <div className="grid gap-3">
-                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong className="text-foreground">Account Information:</strong>
-                      <span className="text-muted-foreground"> Username, email address, password (encrypted)</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong className="text-foreground">Company Information:</strong>
-                      <span className="text-muted-foreground"> Company name, GST number, address, contact details, logo</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong className="text-foreground">Business Data:</strong>
-                      <span className="text-muted-foreground"> Bills, purchase orders, delivery challans, stock information, customer and supplier details</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong className="text-foreground">Payment Information:</strong>
-                      <span className="text-muted-foreground"> Transaction details processed through Razorpay (we do not store card details)</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong className="text-foreground">Usage Data:</strong>
-                      <span className="text-muted-foreground"> Log data, device information, browser type, IP address</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">3. How We Use Your Information</h2>
-            <p className="text-muted-foreground mb-2">We use the collected information for:</p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Providing and maintaining our billing management services</li>
-              <li>Processing your transactions and managing subscriptions</li>
-              <li>Sending administrative information, updates, and security alerts</li>
-              <li>Responding to your inquiries and providing customer support</li>
-              <li>Monitoring and analyzing usage patterns to improve our services</li>
-              <li>Detecting and preventing fraud and security threats</li>
-              <li>Complying with legal obligations and enforcing our terms</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">4. Data Storage and Security</h2>
-            <p className="text-muted-foreground">
-              Your data is stored securely using Supabase infrastructure with industry-standard encryption. 
-              We implement appropriate technical and organizational measures to protect your personal information 
-              against unauthorized access, alteration, disclosure, or destruction. All data is isolated per user 
-              account, ensuring complete privacy between different organizations.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">5. Data Sharing and Disclosure</h2>
-            <p className="text-muted-foreground mb-2">We do not sell your personal information. We may share your information only in the following circumstances:</p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li><strong>Service Providers:</strong> With third-party vendors like Razorpay for payment processing</li>
-              <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
-              <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
-              <li><strong>With Your Consent:</strong> When you explicitly authorize us to share information</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">6. Your Rights</h2>
-            <p className="text-muted-foreground mb-2">You have the right to:</p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Access and receive a copy of your personal data</li>
-              <li>Correct inaccurate or incomplete information</li>
-              <li>Request deletion of your account and associated data</li>
-              <li>Object to or restrict certain processing of your information</li>
-              <li>Export your data in a portable format</li>
-              <li>Withdraw consent at any time</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">7. Data Retention</h2>
-            <p className="text-muted-foreground">
-              We retain your information for as long as your account is active or as needed to provide services. 
-              After account deletion, we may retain certain information for legal, tax, or regulatory purposes 
-              for a period of 7 years as required by Indian law.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">8. Cookies and Tracking</h2>
-            <p className="text-muted-foreground">
-              We use essential cookies and similar tracking technologies to maintain your session and provide 
-              core functionality. We do not use advertising or third-party tracking cookies.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">9. Children's Privacy</h2>
-            <p className="text-muted-foreground">
-              BusinessPlus is not intended for users under 18 years of age. We do not knowingly collect personal 
-              information from children. If you believe we have collected information from a child, please contact us.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">10. Changes to This Policy</h2>
-            <p className="text-muted-foreground">
-              We may update this Privacy Policy from time to time. We will notify you of any changes by posting 
-              the new policy on this page and updating the "Last Updated" date. Continued use of our services 
-              after changes constitutes acceptance of the updated policy.
-            </p>
-          </section>
-
-          <section className="bg-primary/5 p-6 rounded-lg border border-primary/20">
-            <div className="flex items-start gap-4">
-              <AlertCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-semibold mb-4 text-foreground">11. Contact Us</h2>
-                <p className="text-muted-foreground mb-4">
-                  If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:
-                </p>
-                <div className="bg-background p-5 rounded-lg border-2 border-primary/20 space-y-2">
-                  <p className="text-foreground flex items-center gap-2">
-                    <span className="font-semibold">Email:</span> 
-                    <a href="mailto:solutions.businessplus@gmail.com" className="text-primary hover:underline">solution.businessplus@gmail.com</a>
-                  </p>
-                  <p className="text-foreground flex items-center gap-2">
-                    <span className="font-semibold">Support:</span> 
-                    <a href="mailto:solution.businessplus@gmail.com" className="text-primary hover:underline">solution.businessplus@gmail.com</a>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="border-t-2 pt-8 mt-8 bg-muted/30 p-6 rounded-lg">
-            <div className="flex items-center gap-3 mb-4">
-              <CheckCircle2 className="h-6 w-6 text-primary" />
-              <p className="text-sm font-medium text-foreground">
-                By using BusinessPlus, you acknowledge that you have read and understood this Privacy Policy 
-                and agree to its terms.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 mt-6">
-              <Link to="/login" className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                Back to Login
-              </Link>
-              <Link to="/terms-conditions" className="inline-flex items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors">
-                View Terms & Conditions
-              </Link>
-            </div>
-          </section>
-        </CardContent>
-      </Card>
-
-      {/* Footer */}
-      <div className="text-center mt-12 text-sm text-muted-foreground">
-        <p>© 2026 BusinessPlus. All rights reserved.</p>
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
-          <Link to="/privacy-policy" className="hover:text-primary hover:underline">Privacy Policy</Link>
-          <span>•</span>
-          <Link to="/terms-conditions" className="hover:text-primary hover:underline">Terms & Conditions</Link>
-          <span>•</span>
-          <Link to="/refund-policy" className="hover:text-primary hover:underline">Refund Policy</Link>
-          <span>•</span>
-          <Link to="/data-security-policy" className="hover:text-primary hover:underline">Data Security</Link>
-        </div>
+    <div className="container mx-auto py-6 px-4 max-w-4xl">
+      <div className="mb-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Privacy Policy</h1>
+        <p className="text-sm text-muted-foreground mt-2">Last updated: {new Date().toLocaleDateString()}</p>
       </div>
+
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Introduction</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>
+              Welcome to BusinessPlus. We are committed to protecting your personal information and your right to privacy. 
+              This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our 
+              billing management system.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Information We Collect</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Personal Information</h3>
+              <p>We collect personal information that you voluntarily provide to us when you:</p>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>Register for an account</li>
+                <li>Create bills, purchase orders, or delivery challans</li>
+                <li>Add customer or supplier information</li>
+                <li>Contact us for support</li>
+              </ul>
+              <p className="mt-2">This information may include:</p>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>Name and company name</li>
+                <li>Email address and phone number</li>
+                <li>Business address</li>
+                <li>GST number and tax information</li>
+                <li>Payment information</li>
+                <li>Business transaction data</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Automatically Collected Information</h3>
+              <p>When you use our application, we automatically collect certain information, including:</p>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>Log data (IP address, browser type, operating system)</li>
+                <li>Device information</li>
+                <li>Usage data (features used, time spent)</li>
+                <li>Cookies and similar tracking technologies</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>How We Use Your Information</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>We use the information we collect to:</p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Provide, operate, and maintain our billing management system</li>
+              <li>Process your transactions and manage your account</li>
+              <li>Send you technical notices, updates, and support messages</li>
+              <li>Respond to your comments, questions, and customer service requests</li>
+              <li>Analyze usage patterns to improve our services</li>
+              <li>Detect, prevent, and address technical issues and security threats</li>
+              <li>Comply with legal obligations and enforce our terms</li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Data Sharing and Disclosure</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:</p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li><strong>With your consent:</strong> We may share your information when you give us explicit permission</li>
+              <li><strong>Service providers:</strong> We may share information with third-party service providers who perform services on our behalf (e.g., hosting, analytics)</li>
+              <li><strong>Legal requirements:</strong> We may disclose information if required by law or in response to valid legal requests</li>
+              <li><strong>Business transfers:</strong> In the event of a merger, acquisition, or sale of assets, your information may be transferred</li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Data Security</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>
+              We implement appropriate technical and organizational security measures to protect your personal information 
+              against unauthorized access, alteration, disclosure, or destruction. These measures include:
+            </p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Encryption of data in transit and at rest</li>
+              <li>Regular security assessments and updates</li>
+              <li>Access controls and authentication mechanisms</li>
+              <li>Secure data storage with Supabase</li>
+              <li>Regular backups and disaster recovery procedures</li>
+            </ul>
+            <p className="mt-2">
+              However, no method of transmission over the Internet or electronic storage is 100% secure. While we strive 
+              to use commercially acceptable means to protect your information, we cannot guarantee absolute security.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Data Retention</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>
+              We retain your personal information only for as long as necessary to fulfill the purposes outlined in this 
+              Privacy Policy, unless a longer retention period is required or permitted by law. When we no longer need 
+              your information, we will securely delete or anonymize it.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Rights</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>Depending on your location, you may have the following rights regarding your personal information:</p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li><strong>Access:</strong> Request access to your personal information</li>
+              <li><strong>Correction:</strong> Request correction of inaccurate or incomplete information</li>
+              <li><strong>Deletion:</strong> Request deletion of your personal information</li>
+              <li><strong>Data portability:</strong> Request a copy of your data in a structured format</li>
+              <li><strong>Opt-out:</strong> Opt-out of certain data processing activities</li>
+              <li><strong>Withdraw consent:</strong> Withdraw your consent at any time</li>
+            </ul>
+            <p className="mt-2">
+              To exercise these rights, please contact us using the information provided below.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Cookies and Tracking Technologies</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>
+              We use cookies and similar tracking technologies to track activity on our application and store certain information. 
+              You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do 
+              not accept cookies, you may not be able to use some features of our application.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Children's Privacy</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>
+              Our application is not intended for use by children under the age of 18. We do not knowingly collect personal 
+              information from children. If you are a parent or guardian and believe your child has provided us with personal 
+              information, please contact us so we can delete such information.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Changes to This Privacy Policy</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>
+              We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new 
+              Privacy Policy on this page and updating the "Last updated" date. You are advised to review this Privacy 
+              Policy periodically for any changes.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Contact Us</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm md:prose-base max-w-none">
+            <p>If you have any questions about this Privacy Policy, please contact us:</p>
+            <ul className="list-none space-y-2 mt-2">
+              <li><strong>Email:</strong> Solutions.businessplus@gmail.com</li>
+              <li><strong>Website:</strong> www.businessplus.in</li>
+            </ul>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

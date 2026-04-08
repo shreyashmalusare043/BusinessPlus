@@ -79,13 +79,13 @@ export default function ViewPurchaseOrderPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate('/purchase-orders')}>
+    <div className="space-y-6 px-4 md:px-0">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+        <Button variant="ghost" onClick={() => navigate('/purchase-orders')} className="w-full sm:w-auto justify-start sm:justify-center">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Purchase Orders
         </Button>
-        <Button onClick={handlePrint}>
+        <Button onClick={handlePrint} className="w-full sm:w-auto">
           <Printer className="mr-2 h-4 w-4" />
           Print / Download
         </Button>
@@ -93,21 +93,50 @@ export default function ViewPurchaseOrderPage() {
 
       <Card>
         <CardContent className="p-0">
-          <div ref={printRef} className="p-8 bg-white text-black">
+          <div ref={printRef} className="p-4 md:p-8 bg-white text-black">
+            <style>
+              {`
+                @media print {
+                  body { margin: 0; padding: 0; }
+                  @page { margin: 0.5cm; size: A4; }
+                  
+                  /* Restore desktop layout for print */
+                  .print-container {
+                    padding: 40px !important;
+                  }
+                  .print-container > div:first-child {
+                    flex-direction: row !important;
+                    margin-bottom: 1.5rem !important;
+                  }
+                  .print-container h1 {
+                    font-size: 1.5rem !important;
+                  }
+                  .print-container h2 {
+                    font-size: 1.875rem !important;
+                  }
+                  .print-container img {
+                    height: 4rem !important;
+                  }
+                  .print-container table {
+                    min-width: 100% !important;
+                  }
+                }
+              `}
+            </style>
             {/* Header with Logo */}
-            <div className="flex items-start justify-between mb-6 pb-4 border-b-2 border-black">
+            <div className="flex flex-col md:flex-row items-start justify-between mb-4 md:mb-6 pb-4 border-b-2 border-black gap-4">
               <div className="flex-1">
                 {company?.logo_url && (
-                  <img src={company.logo_url} alt="Company Logo" className="h-16 mb-2 object-contain" />
+                  <img src={company.logo_url} alt="Company Logo" className="h-12 md:h-16 mb-2 object-contain" />
                 )}
-                <h1 className="text-2xl font-bold">{company?.company_name}</h1>
-                <p className="text-sm mt-1">{company?.address}</p>
-                <p className="text-sm">GST: {company?.gst_number}</p>
-                {company?.contact_phone && <p className="text-sm">Phone: {company.contact_phone}</p>}
-                {company?.contact_email && <p className="text-sm">Email: {company.contact_email}</p>}
+                <h1 className="text-xl md:text-2xl font-bold">{company?.company_name}</h1>
+                <p className="text-xs md:text-sm mt-1">{company?.address}</p>
+                <p className="text-xs md:text-sm">GST: {company?.gst_number}</p>
+                {company?.contact_phone && <p className="text-xs md:text-sm">Phone: {company.contact_phone}</p>}
+                {company?.contact_email && <p className="text-xs md:text-sm break-words">Email: {company.contact_email}</p>}
               </div>
-              <div className="text-right">
-                <h2 className="text-3xl font-bold">PURCHASE ORDER</h2>
+              <div className="md:text-right w-full md:w-auto">
+                <h2 className="text-2xl md:text-3xl font-bold">PURCHASE ORDER</h2>
                 <p className="text-sm mt-2">
                   <strong>PO No:</strong> {po.po_no}
                 </p>
@@ -132,38 +161,40 @@ export default function ViewPurchaseOrderPage() {
             </div>
 
             {/* Items Table */}
-            <table className="w-full mb-6 border-collapse">
-              <thead>
-                <tr className="border-b-2 border-black">
-                  <th className="text-left py-2 px-2 border border-black">Item Name</th>
-                  <th className="text-left py-2 px-2 border border-black">HSN</th>
-                  <th className="text-right py-2 px-2 border border-black">Qty</th>
-                  <th className="text-right py-2 px-2 border border-black">Rate</th>
-                  <th className="text-right py-2 px-2 border border-black">CGST</th>
-                  <th className="text-right py-2 px-2 border border-black">SGST</th>
-                  <th className="text-right py-2 px-2 border border-black">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {po.purchase_order_items.map((item, index) => (
-                  <tr key={index} className="border-b border-black">
-                    <td className="py-2 px-2 border border-black">{item.item_name}</td>
-                    <td className="py-2 px-2 border border-black">{item.hsn_code || '-'}</td>
-                    <td className="text-right py-2 px-2 border border-black">{item.quantity}</td>
-                    <td className="text-right py-2 px-2 border border-black">₹{item.unit_price.toFixed(2)}</td>
-                    <td className="text-right py-2 px-2 border border-black">
-                      {item.cgst_rate}%<br />₹{item.cgst_amount.toFixed(2)}
-                    </td>
-                    <td className="text-right py-2 px-2 border border-black">
-                      {item.sgst_rate}%<br />₹{item.sgst_amount.toFixed(2)}
-                    </td>
-                    <td className="text-right py-2 px-2 border border-black font-medium">
-                      ₹{item.line_total.toFixed(2)}
-                    </td>
+            <div className="overflow-x-auto -mx-2 px-2 md:mx-0 md:px-0 mb-4 md:mb-6">
+              <table className="w-full border-collapse" style={{ minWidth: '600px' }}>
+                <thead>
+                  <tr className="border-b-2 border-black">
+                    <th className="text-left py-2 px-2 border border-black min-w-[120px]">Item Name</th>
+                    <th className="text-left py-2 px-2 border border-black min-w-[80px]">HSN</th>
+                    <th className="text-right py-2 px-2 border border-black min-w-[60px]">Qty</th>
+                    <th className="text-right py-2 px-2 border border-black min-w-[80px]">Rate</th>
+                    <th className="text-right py-2 px-2 border border-black min-w-[80px]">CGST</th>
+                    <th className="text-right py-2 px-2 border border-black min-w-[80px]">SGST</th>
+                    <th className="text-right py-2 px-2 border border-black min-w-[90px]">Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {po.purchase_order_items.map((item, index) => (
+                    <tr key={index} className="border-b border-black">
+                      <td className="py-2 px-2 border border-black">{item.item_name}</td>
+                      <td className="py-2 px-2 border border-black">{item.hsn_code || '-'}</td>
+                      <td className="text-right py-2 px-2 border border-black">{item.quantity}</td>
+                      <td className="text-right py-2 px-2 border border-black">₹{item.unit_price.toFixed(2)}</td>
+                      <td className="text-right py-2 px-2 border border-black">
+                        {item.cgst_rate}%<br />₹{item.cgst_amount.toFixed(2)}
+                      </td>
+                      <td className="text-right py-2 px-2 border border-black">
+                        {item.sgst_rate}%<br />₹{item.sgst_amount.toFixed(2)}
+                      </td>
+                      <td className="text-right py-2 px-2 border border-black font-medium">
+                        ₹{item.line_total.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {/* Totals */}
             <div className="flex justify-end">

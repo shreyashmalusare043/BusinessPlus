@@ -11,28 +11,28 @@ import type { BillWithItems, Company } from '@/types';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white border border-gray-300 p-5">
+  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', marginBottom: '2rem', padding: '20px' }}>
     {/* Header Section */}
-    <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-300">
+    <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
       <div className="flex gap-3 items-start">
         {company.logo_url && (
-          <img src={company.logo_url} alt="Logo" className="h-16 w-16 object-contain flex-shrink-0" />
+          <img src={company.logo_url} alt="Logo" className="h-16 md:h-20 w-16 md:w-20 object-contain flex-shrink-0" />
         )}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">{company.company_name}</h1>
-          <div className="text-xs text-gray-600 space-y-0.5">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
+          <div className="text-xs md:text-sm text-gray-600 space-y-0.5">
             <p>{company.address}</p>
-            <p>Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
-            {company.website && <p>Website: {company.website}</p>}
-            <p className="font-semibold text-gray-800">GSTIN: {company.gst_number}</p>
+            <p className="break-words">Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
+            {company.website && <p className="break-words">Website: {company.website}</p>}
+            <p className="font-semibold text-gray-800 mt-1">GSTIN: {company.gst_number}</p>
           </div>
         </div>
       </div>
 
       {/* Invoice Title & Copy Type */}
-      <div className="text-right">
-        <h2 className="text-3xl font-bold text-primary mb-2">INVOICE</h2>
+      <div className="text-left md:text-right w-full md:w-auto">
+        <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">INVOICE</h2>
         <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
           {copyType}
         </span>
@@ -40,11 +40,11 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
     </div>
 
     {/* Bill Info Section */}
-    <div className="grid grid-cols-2 gap-8 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-6 md:mb-8">
       {/* Bill To */}
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Bill To</p>
-        <p className="text-lg font-bold text-gray-900 mb-2">{bill.customer_name}</p>
+        <p className="text-base md:text-lg font-bold text-gray-900 mb-2">{bill.customer_name}</p>
         {bill.customer_address && (
           <p className="text-sm text-gray-600 mb-1">{bill.customer_address}</p>
         )}
@@ -56,18 +56,18 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
       </div>
 
       {/* Invoice Details */}
-      <div className="text-right">
+      <div className="md:text-right">
         <div className="space-y-1">
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-between md:justify-end gap-4">
             <span className="text-sm font-semibold text-gray-500">Invoice No:</span>
             <span className="text-sm font-bold text-gray-900">{bill.bill_no}</span>
           </div>
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-between md:justify-end gap-4">
             <span className="text-sm font-semibold text-gray-500">Invoice Date:</span>
             <span className="text-sm font-bold text-gray-900">{new Date(bill.bill_date).toLocaleDateString()}</span>
           </div>
           {bill.po_number && (
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-between md:justify-end gap-4">
               <span className="text-sm font-semibold text-gray-500">P.O. No:</span>
               <span className="text-sm font-bold text-gray-900">{bill.po_number}</span>
             </div>
@@ -77,16 +77,16 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
     </div>
 
     {/* Items Table */}
-    <div className="mb-8">
-      <table className="w-full">
+    <div className="mb-6 md:mb-8 overflow-x-auto -mx-2 px-2 md:mx-0 md:px-0">
+      <table className="w-full" style={{ minWidth: '500px' }}>
         <thead>
           <tr className="border-b-2 border-gray-900">
-            <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-12">#</th>
-            <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide">Description</th>
-            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-24">HSN/SAC</th>
-            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16">Qty</th>
-            <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-24">Rate</th>
-            <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-28">Amount</th>
+            <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-12 min-w-[40px]">#</th>
+            <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide min-w-[120px]">Description</th>
+            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">HSN/SAC</th>
+            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16 min-w-[60px]">Qty</th>
+            <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">Rate</th>
+            <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-28 min-w-[90px]">Amount</th>
           </tr>
         </thead>
         <tbody>
@@ -105,8 +105,8 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
     </div>
 
     {/* Summary Section */}
-    <div className="flex justify-end mb-8">
-      <div className="w-80">
+    <div className="flex justify-end mb-6 md:mb-8">
+      <div className="w-full md:w-80">
         <div className="space-y-2">
           <div className="flex justify-between py-2 text-sm border-b border-gray-200">
             <span className="text-gray-600">Subtotal</span>
@@ -121,8 +121,8 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
             <span className="font-medium text-gray-900">₹{bill.total_sgst.toFixed(2)}</span>
           </div>
           <div className="flex justify-between py-3 bg-primary text-primary-foreground px-4 mt-2">
-            <span className="font-bold text-base">Total Amount</span>
-            <span className="font-bold text-xl">₹{bill.grand_total.toFixed(2)}</span>
+            <span className="font-bold text-sm md:text-base">Total Amount</span>
+            <span className="font-bold text-lg md:text-xl">₹{bill.grand_total.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -217,19 +217,6 @@ export default function ViewBillPage() {
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: `Invoice-${bill?.bill_no || 'Bill'}`,
-    pageStyle: `
-      @page {
-        size: A4;
-        margin: 0.5cm;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        -webkit-print-color-adjust: exact;
-        color-adjust: exact;
-      }
-    `,
   });
 
   if (loading) {
@@ -259,63 +246,83 @@ export default function ViewBillPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 md:px-0">
       {/* Action Buttons - Not printed */}
-      <div className="flex items-center justify-between print:hidden">
-        <Button variant="outline" onClick={() => navigate('/bills')}>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 print:hidden">
+        <Button variant="outline" onClick={() => navigate('/bills')} className="w-full sm:w-auto">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Bills
         </Button>
-        <Button onClick={handlePrint}>
+        <Button onClick={handlePrint} className="w-full sm:w-auto">
           <Printer className="h-4 w-4 mr-2" />
           Print Bill
         </Button>
       </div>
 
       {/* Printable Content */}
-      <div ref={printRef} className="bg-white w-full max-w-[210mm] mx-auto border border-gray-200 rounded-lg overflow-hidden">
+      <div ref={printRef} className="bg-white p-2 md:p-4">
         <style>
           {`
             @media print {
-              .bill-copy {
+              body { margin: 0; padding: 0; }
+              .bill-copy { 
                 page-break-after: always;
-                page-break-inside: avoid;
-                margin: 0;
-                border: none !important;
-                box-sizing: border-box;
+                padding: 40px !important;
               }
-              .bill-copy:last-child {
-                page-break-after: auto;
+              .bill-copy:last-child { page-break-after: auto; }
+              @page { margin: 0.5cm; size: A4; }
+              
+              /* Restore desktop layout for print */
+              .bill-copy > div:first-child {
+                flex-direction: row !important;
+                margin-bottom: 2rem !important;
+                padding-bottom: 1.5rem !important;
               }
-              @page {
-                size: A4;
-                margin: 0.5cm;
+              .bill-copy h1 {
+                font-size: 1.875rem !important;
               }
-            }
-            @media screen {
-              .screen-content { max-width: 210mm; }
-              .bill-copy {
-                margin-bottom: 2rem;
+              .bill-copy h2 {
+                font-size: 2.25rem !important;
+                text-align: right !important;
               }
-              .bill-copy:last-child {
-                margin-bottom: 0;
+              .bill-copy img {
+                height: 5rem !important;
+                width: 5rem !important;
+              }
+              .bill-copy .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 2rem !important;
+              }
+              .bill-copy table {
+                min-width: 100% !important;
+              }
+              /* Restore summary section width for print */
+              .bill-copy > div:has(> div > .space-y-2) {
+                justify-content: flex-end !important;
+              }
+              .bill-copy > div > div.w-full {
+                width: 20rem !important;
+              }
+              /* Right align INVOICE heading and copy label for print */
+              .bill-copy > div:first-child > div:last-child {
+                text-align: right !important;
+                width: auto !important;
               }
             }
           `}
         </style>
-        <div className="screen-content">
-          {/* Original Copy */}
-          <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
-          
-          {/* Duplicate Copy */}
-          <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
-          
-          {/* Triplicate Copy */}
-          <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
-          
-          {/* Watermark - Only show for free users */}
-          {showWatermark && <Watermark type="bill" />}
-        </div>
+        
+        {/* Original Copy */}
+        <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
+        
+        {/* Duplicate Copy */}
+        <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
+        
+        {/* Triplicate Copy */}
+        <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
+        
+        {/* Watermark - Only show for free users */}
+        {showWatermark && <Watermark type="bill" />}
       </div>
     </div>
   );
