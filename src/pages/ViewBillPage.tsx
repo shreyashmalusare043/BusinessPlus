@@ -264,13 +264,43 @@ export default function ViewBillPage() {
         <style>
           {`
             @media print {
-              body { margin: 0; padding: 0; }
+              /* Hide everything except the bill content */
+              body * {
+                visibility: hidden;
+              }
+              
+              /* Show only the printable content */
+              .bill-copy, .bill-copy * {
+                visibility: visible;
+              }
+              
+              /* Reset body and page */
+              body { 
+                margin: 0 !important; 
+                padding: 0 !important;
+                background: white !important;
+              }
+              
+              /* Position bill copies at top left */
               .bill-copy { 
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
                 page-break-after: always;
                 padding: 40px !important;
+                margin: 0 !important;
+                background: white !important;
               }
-              .bill-copy:last-child { page-break-after: auto; }
-              @page { margin: 0.5cm; size: A4; }
+              
+              .bill-copy:last-child { 
+                page-break-after: auto; 
+              }
+              
+              @page { 
+                margin: 0.5cm; 
+                size: A4; 
+              }
               
               /* Restore desktop layout for print */
               .bill-copy > div:first-child {

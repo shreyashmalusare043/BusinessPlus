@@ -29,17 +29,17 @@ const purposeDeclarations: Record<string, string> = {
 
 // Challan Copy Component
 const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanWithItems; company: Company; copyType: string }) => (
-  <div className="challan-copy bg-white" style={{ pageBreakAfter: 'always', marginBottom: '2rem', padding: '40px' }}>
+  <div className="challan-copy bg-white p-4 md:p-8">
     {/* Header Section */}
-    <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-gray-200">
+    <div className="flex flex-col md:flex-row justify-between items-start mb-4 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
       <div className="flex gap-3 items-start">
         {company.logo_url && (
-          <img src={company.logo_url} alt="Logo" className="h-20 w-20 object-contain flex-shrink-0" />
+          <img src={company.logo_url} alt="Logo" className="h-12 w-12 md:h-20 md:w-20 object-contain flex-shrink-0" />
         )}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
-          <div className="text-sm text-gray-600 space-y-0.5">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
+          <div className="text-xs md:text-sm text-gray-600 space-y-0.5">
             <p>{company.address}</p>
             <p>Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
             <p className="font-semibold text-gray-800 mt-1">GSTIN: {company.gst_number}</p>
@@ -48,8 +48,8 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
       </div>
 
       {/* Challan Title & Copy Type */}
-      <div className="text-right">
-        <h2 className="text-4xl font-bold text-primary mb-2">DELIVERY CHALLAN</h2>
+      <div className="text-left md:text-right w-full md:w-auto">
+        <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">DELIVERY CHALLAN</h2>
         <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
           {copyType}
         </span>
@@ -57,7 +57,7 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
     </div>
 
     {/* Challan Info Section */}
-    <div className="grid grid-cols-2 gap-8 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-4 md:mb-8">
       {/* Consignee Details */}
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Consignee / Party Details</p>
@@ -70,21 +70,21 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
       </div>
 
       {/* Challan Details */}
-      <div className="text-right">
+      <div className="text-left md:text-right">
         <div className="space-y-1">
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-start md:justify-end gap-4">
             <span className="text-sm font-semibold text-gray-500">Challan No:</span>
             <span className="text-sm font-bold text-gray-900">{challan.challan_no}</span>
           </div>
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-start md:justify-end gap-4">
             <span className="text-sm font-semibold text-gray-500">Date:</span>
             <span className="text-sm font-bold text-gray-900">{new Date(challan.challan_date).toLocaleDateString()}</span>
           </div>
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-start md:justify-end gap-4">
             <span className="text-sm font-semibold text-gray-500">Place of Supply:</span>
             <span className="text-sm font-bold text-gray-900">{challan.place_of_supply}</span>
           </div>
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-start md:justify-end gap-4">
             <span className="text-sm font-semibold text-gray-500">Purpose:</span>
             <span className="text-sm font-bold text-primary">{purposeLabels[challan.purpose]}</span>
           </div>
@@ -93,16 +93,16 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
     </div>
 
     {/* Items Table */}
-    <div className="mb-8">
-      <table className="w-full text-sm">
+    <div className="mb-4 md:mb-8 overflow-x-auto -mx-2 px-2 md:mx-0 md:px-0">
+      <table className="w-full text-sm" style={{ minWidth: '500px' }}>
         <thead>
           <tr className="border-b-2 border-gray-900">
-            <th className="py-2 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-10">#</th>
-            <th className="py-2 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide">Item Name</th>
-            <th className="py-2 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide">Description</th>
-            <th className="py-2 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-20">HSN/SAC</th>
-            <th className="py-2 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16">Qty</th>
-            <th className="py-2 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16">Unit</th>
+            <th className="py-2 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-10 min-w-[40px]">#</th>
+            <th className="py-2 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide min-w-[120px]">Item Name</th>
+            <th className="py-2 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide min-w-[120px]">Description</th>
+            <th className="py-2 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-20 min-w-[80px]">HSN/SAC</th>
+            <th className="py-2 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16 min-w-[60px]">Qty</th>
+            <th className="py-2 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16 min-w-[60px]">Unit</th>
           </tr>
         </thead>
         <tbody>
@@ -214,9 +214,9 @@ export default function ViewChallanPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 px-4 md:px-0">
         <Skeleton className="h-9 w-32 bg-muted" />
-        <div className="bg-white p-8 rounded-lg">
+        <div className="bg-white p-4 md:p-8 rounded-lg">
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} className="h-12 w-full bg-muted" />
@@ -229,9 +229,9 @@ export default function ViewChallanPage() {
 
   if (!challan || !company) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-12 px-4">
         <p className="text-muted-foreground">Delivery Challan not found</p>
-        <Button onClick={() => navigate('/delivery-challans')} className="mt-4">
+        <Button onClick={() => navigate('/delivery-challans')} className="mt-4 w-full sm:w-auto">
           Back to Delivery Challans
         </Button>
       </div>
@@ -239,28 +239,106 @@ export default function ViewChallanPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 md:px-0">
       {/* Action Buttons - Not printed */}
-      <div className="flex items-center justify-between print:hidden">
-        <Button variant="outline" onClick={() => navigate('/delivery-challans')}>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 print:hidden">
+        <Button variant="outline" onClick={() => navigate('/delivery-challans')} className="w-full sm:w-auto">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Delivery Challans
         </Button>
-        <Button onClick={handlePrint}>
+        <Button onClick={handlePrint} className="w-full sm:w-auto">
           <Printer className="h-4 w-4 mr-2" />
           Print Challan
         </Button>
       </div>
 
       {/* Printable Content */}
-      <div ref={printRef} className="bg-white p-4">
+      <div ref={printRef} className="bg-white p-2 md:p-4">
         <style>
           {`
             @media print {
-              body { margin: 0; padding: 0; }
-              .challan-copy { page-break-after: always; }
-              .challan-copy:last-child { page-break-after: auto; }
-              @page { margin: 0.5cm; size: A4; }
+              /* Hide everything except the challan content */
+              body * {
+                visibility: hidden;
+              }
+              
+              /* Show only the printable content */
+              .challan-copy, .challan-copy * {
+                visibility: visible;
+              }
+              
+              /* Reset body and page */
+              body { 
+                margin: 0 !important; 
+                padding: 0 !important;
+                background: white !important;
+              }
+              
+              /* Position challan copies at top left */
+              .challan-copy { 
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                page-break-after: always;
+                padding: 40px !important;
+                margin: 0 !important;
+                background: white !important;
+              }
+              
+              .challan-copy:last-child { 
+                page-break-after: auto; 
+              }
+              
+              @page { 
+                margin: 0.5cm; 
+                size: A4; 
+              }
+              
+              /* Restore desktop layout for print */
+              .challan-copy > div:first-child {
+                flex-direction: row !important;
+                margin-bottom: 2rem !important;
+                padding-bottom: 1.5rem !important;
+              }
+              
+              .challan-copy h1 {
+                font-size: 1.875rem !important;
+              }
+              
+              .challan-copy h2 {
+                font-size: 2.25rem !important;
+                text-align: right !important;
+              }
+              
+              .challan-copy img {
+                height: 5rem !important;
+                width: 5rem !important;
+              }
+              
+              .challan-copy .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 2rem !important;
+              }
+              
+              .challan-copy table {
+                min-width: 100% !important;
+              }
+              
+              /* Right align challan heading and copy label for print */
+              .challan-copy > div:first-child > div:last-child {
+                text-align: right !important;
+                width: auto !important;
+              }
+              
+              /* Right align challan details for print */
+              .challan-copy > div:nth-child(2) > div:last-child {
+                text-align: right !important;
+              }
+              
+              .challan-copy > div:nth-child(2) > div:last-child .flex {
+                justify-content: flex-end !important;
+              }
             }
           `}
         </style>
