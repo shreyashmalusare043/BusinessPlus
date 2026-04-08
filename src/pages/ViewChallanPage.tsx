@@ -73,7 +73,7 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
       {/* Challan Details */}
       <div className="text-left md:text-right">
         <div className="space-y-1">
-          <div className="flex justify-start md:justify-end gap-4">
+          <div className="flex text-left text-xs justify-start md:justify-end gap-4">
             <span className="text-sm font-semibold text-gray-500">Challan No:</span>
             <span className="text-sm font-bold text-gray-900">{challan.challan_no}</span>
           </div>
@@ -347,9 +347,9 @@ export default function ViewChallanPage() {
               .challan-copy {
                 transform-origin: top left;
                 transform: scale(0.35);
-                width: 210mm !important;
-                min-width: 210mm !important;
-                margin-bottom: -500px !important;
+                width: 230mm !important;
+                min-width: 230 !important;
+                margin-bottom: -400px !important;
                 padding: 20px !important;
               }
               

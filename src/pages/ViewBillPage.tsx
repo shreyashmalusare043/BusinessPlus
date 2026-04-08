@@ -354,7 +354,7 @@ export default function ViewBillPage() {
               .bill-copy {
                 transform-origin: top left;
                 transform: scale(0.35);
-                width: 210mm !important;
+                width: 230mm !important;
                 min-width: 210mm !important;
                 margin-bottom: -500px !important;
                 padding: 20px !important;
