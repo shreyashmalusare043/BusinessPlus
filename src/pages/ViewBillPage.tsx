@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { getBillById, getMyCompany, checkSubscriptionStatus } from '@/db/api';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Printer, ArrowLeft } from 'lucide-react';
+import { Printer, ArrowLeft, Download } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { Watermark } from '@/components/ui/watermark';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BillWithItems, Company } from '@/types';
+import html2pdf from 'html2pdf.js';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
@@ -216,8 +217,82 @@ export default function ViewBillPage() {
   };
 
   const handlePrint = useReactToPrint({
-    contentRef: printRef,
+    content: () => printRef.current,
   });
+
+  const handleDownloadPDF = async () => {
+    if (!printRef.current || !bill) {
+      console.error('PDF Generation Error: Missing printRef or bill data');
+      alert('Unable to generate PDF. Please try again.');
+      return;
+    }
+
+    try {
+      const element = printRef.current;
+      const billDate = new Date(bill.bill_date).toISOString().split('T')[0];
+      const filename = `Bill_${bill.bill_no}_${billDate}.pdf`;
+
+      console.log('Starting PDF generation for:', filename);
+
+      // Temporarily remove mobile scaling for PDF generation
+      const billCopies = element.querySelectorAll('.bill-copy');
+      console.log('Found bill copies:', billCopies.length);
+      
+      const originalStyles: Array<{transform: string; width: string; margin: string; minWidth: string}> = [];
+      
+      billCopies.forEach((copy, index) => {
+        const htmlCopy = copy as HTMLElement;
+        originalStyles[index] = {
+          transform: htmlCopy.style.transform,
+          width: htmlCopy.style.width,
+          margin: htmlCopy.style.marginBottom,
+          minWidth: htmlCopy.style.minWidth
+        };
+        
+        // Remove all scaling and force full size
+        htmlCopy.style.transform = 'none';
+        htmlCopy.style.width = '210mm';
+        htmlCopy.style.minWidth = '210mm';
+        htmlCopy.style.marginBottom = '2rem';
+      });
+
+      const opt = {
+        margin: [10, 10, 10, 10] as [number, number, number, number],
+        filename: filename,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: true,
+          letterRendering: true
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' as const
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      console.log('Generating PDF with options:', opt);
+      await html2pdf().set(opt).from(element).save();
+      console.log('PDF generated successfully');
+
+      // Restore mobile scaling
+      billCopies.forEach((copy, index) => {
+        const htmlCopy = copy as HTMLElement;
+        htmlCopy.style.transform = originalStyles[index].transform;
+        htmlCopy.style.width = originalStyles[index].width;
+        htmlCopy.style.marginBottom = originalStyles[index].margin;
+        htmlCopy.style.minWidth = originalStyles[index].minWidth;
+      });
+      
+      console.log('Mobile scaling restored');
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      alert('Failed to generate PDF. Please check the console for details.');
+    }
+  };
 
   if (loading) {
     return (
@@ -253,16 +328,78 @@ export default function ViewBillPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Bills
         </Button>
-        <Button onClick={handlePrint} className="w-full sm:w-auto">
-          <Printer className="h-4 w-4 mr-2" />
-          Print Bill
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={handleDownloadPDF} className="w-full sm:w-auto">
+            <Download className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
+          <Button onClick={handlePrint} className="w-full sm:w-auto">
+            <Printer className="h-4 w-4 mr-2" />
+            Print Bill
+          </Button>
+        </div>
       </div>
 
       {/* Printable Content */}
-      <div ref={printRef} className="bg-white p-2 md:p-4">
+      <div ref={printRef} className="bg-white p-2 md:p-4 bill-preview-container">
         <style>
           {`
+            /* Mobile preview scaling - show complete A4 page */
+            @media screen and (max-width: 767px) {
+              .bill-preview-container {
+                overflow: hidden;
+                width: 100%;
+              }
+              
+              .bill-copy {
+                transform-origin: top left;
+                transform: scale(0.35);
+                width: 210mm !important;
+                min-width: 210mm !important;
+                margin-bottom: -500px !important;
+                padding: 20px !important;
+              }
+              
+              /* Force desktop layout - override all responsive classes */
+              .bill-copy * {
+                max-width: none !important;
+              }
+              
+              .bill-copy > div:first-child {
+                flex-direction: row !important;
+                align-items: flex-start !important;
+                justify-content: space-between !important;
+              }
+              
+              /* Force Invoice title to right side */
+              .bill-copy > div:first-child > div:last-child {
+                text-align: right !important;
+                width: auto !important;
+              }
+              
+              .bill-copy h1 {
+                font-size: 1.875rem !important;
+              }
+              
+              .bill-copy h2 {
+                font-size: 2.25rem !important;
+              }
+              
+              .bill-copy img {
+                height: 5rem !important;
+                width: 5rem !important;
+              }
+              
+              .bill-copy .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+              }
+              
+              .bill-copy table {
+                width: 100% !important;
+                font-size: 0.875rem !important;
+              }
+            }
+            
             @media print {
               /* Hide everything except the bill content */
               body * {
@@ -291,6 +428,7 @@ export default function ViewBillPage() {
                 padding: 40px !important;
                 margin: 0 !important;
                 background: white !important;
+                transform: none !important;
               }
               
               .bill-copy:last-child { 

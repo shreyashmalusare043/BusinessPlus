@@ -5,11 +5,12 @@ import { getChallanById } from '@/db/api';
 import { getMyCompany } from '@/db/api';
 import { checkSubscriptionStatus } from '@/db/api';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Printer, ArrowLeft } from 'lucide-react';
+import { Printer, ArrowLeft, Download } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { Watermark } from '@/components/ui/watermark';
 import { useAuth } from '@/contexts/AuthContext';
 import type { DeliveryChallanWithItems, Company } from '@/types';
+import html2pdf from 'html2pdf.js';
 
 const purposeLabels: Record<string, string> = {
   job_work: 'Job Work',
@@ -171,8 +172,82 @@ export default function ViewChallanPage() {
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
-    contentRef: printRef,
+    content: () => printRef.current,
   });
+
+  const handleDownloadPDF = async () => {
+    if (!printRef.current || !challan) {
+      console.error('PDF Generation Error: Missing printRef or challan data');
+      alert('Unable to generate PDF. Please try again.');
+      return;
+    }
+
+    try {
+      const element = printRef.current;
+      const challanDate = new Date(challan.challan_date).toISOString().split('T')[0];
+      const filename = `Challan_${challan.challan_no}_${challanDate}.pdf`;
+
+      console.log('Starting PDF generation for:', filename);
+
+      // Temporarily remove mobile scaling for PDF generation
+      const challanCopies = element.querySelectorAll('.challan-copy');
+      console.log('Found challan copies:', challanCopies.length);
+      
+      const originalStyles: Array<{transform: string; width: string; margin: string; minWidth: string}> = [];
+      
+      challanCopies.forEach((copy, index) => {
+        const htmlCopy = copy as HTMLElement;
+        originalStyles[index] = {
+          transform: htmlCopy.style.transform,
+          width: htmlCopy.style.width,
+          margin: htmlCopy.style.marginBottom,
+          minWidth: htmlCopy.style.minWidth
+        };
+        
+        // Remove all scaling and force full size
+        htmlCopy.style.transform = 'none';
+        htmlCopy.style.width = '210mm';
+        htmlCopy.style.minWidth = '210mm';
+        htmlCopy.style.marginBottom = '2rem';
+      });
+
+      const opt = {
+        margin: [10, 10, 10, 10] as [number, number, number, number],
+        filename: filename,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: true,
+          letterRendering: true
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' as const
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      console.log('Generating PDF with options:', opt);
+      await html2pdf().set(opt).from(element).save();
+      console.log('PDF generated successfully');
+
+      // Restore mobile scaling
+      challanCopies.forEach((copy, index) => {
+        const htmlCopy = copy as HTMLElement;
+        htmlCopy.style.transform = originalStyles[index].transform;
+        htmlCopy.style.width = originalStyles[index].width;
+        htmlCopy.style.marginBottom = originalStyles[index].margin;
+        htmlCopy.style.minWidth = originalStyles[index].minWidth;
+      });
+      
+      console.log('Mobile scaling restored');
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      alert('Failed to generate PDF. Please check the console for details.');
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -246,16 +321,78 @@ export default function ViewChallanPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Delivery Challans
         </Button>
-        <Button onClick={handlePrint} className="w-full sm:w-auto">
-          <Printer className="h-4 w-4 mr-2" />
-          Print Challan
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={handleDownloadPDF} className="w-full sm:w-auto">
+            <Download className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
+          <Button onClick={handlePrint} className="w-full sm:w-auto">
+            <Printer className="h-4 w-4 mr-2" />
+            Print Challan
+          </Button>
+        </div>
       </div>
 
       {/* Printable Content */}
-      <div ref={printRef} className="bg-white p-2 md:p-4">
+      <div ref={printRef} className="bg-white p-2 md:p-4 challan-preview-container">
         <style>
           {`
+            /* Mobile preview scaling - show complete A4 page */
+            @media screen and (max-width: 767px) {
+              .challan-preview-container {
+                overflow: hidden;
+                width: 100%;
+              }
+              
+              .challan-copy {
+                transform-origin: top left;
+                transform: scale(0.35);
+                width: 210mm !important;
+                min-width: 210mm !important;
+                margin-bottom: -500px !important;
+                padding: 20px !important;
+              }
+              
+              /* Force desktop layout - override all responsive classes */
+              .challan-copy * {
+                max-width: none !important;
+              }
+              
+              .challan-copy > div:first-child {
+                flex-direction: row !important;
+                align-items: flex-start !important;
+                justify-content: space-between !important;
+              }
+              
+              /* Force Delivery Challan title to right side */
+              .challan-copy > div:first-child > div:last-child {
+                text-align: right !important;
+                width: auto !important;
+              }
+              
+              .challan-copy h1 {
+                font-size: 1.875rem !important;
+              }
+              
+              .challan-copy h2 {
+                font-size: 2.25rem !important;
+              }
+              
+              .challan-copy img {
+                height: 5rem !important;
+                width: 5rem !important;
+              }
+              
+              .challan-copy .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+              }
+              
+              .challan-copy table {
+                width: 100% !important;
+                font-size: 0.875rem !important;
+              }
+            }
+            
             @media print {
               /* Hide everything except the challan content */
               body * {
@@ -284,6 +421,7 @@ export default function ViewChallanPage() {
                 padding: 40px !important;
                 margin: 0 !important;
                 background: white !important;
+                transform: none !important;
               }
               
               .challan-copy:last-child { 
