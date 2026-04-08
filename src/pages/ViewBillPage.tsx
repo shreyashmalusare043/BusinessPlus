@@ -221,11 +221,20 @@ export default function ViewBillPage() {
   });
 
   const handleDownloadPDF = async () => {
-    if (!printRef.current || !bill) {
-      console.error('PDF Generation Error: Missing printRef or bill data');
-      alert('Unable to generate PDF. Please try again.');
-      return;
-    }
+  if (!printRef.current || !bill) return;
+
+  const element = printRef.current;
+
+  const copies = element.querySelectorAll('.bill-copy');
+
+  copies.forEach((copy: any) => {
+    copy.style.transform = 'none';
+    copy.style.width = '210mm';
+    copy.style.minWidth = '210mm';
+  });
+
+  // 🔥 WAIT for DOM update (IMPORTANT)
+  await new Promise((res) => setTimeout(res, 500));
 
     try {
       const element = printRef.current;
@@ -401,44 +410,37 @@ export default function ViewBillPage() {
             }
             
             @media print {
-              /* Hide everything except the bill content */
-              body * {
-                visibility: hidden;
-              }
-              
-              /* Show only the printable content */
-              .bill-copy, .bill-copy * {
-                visibility: visible;
-              }
-              
-              /* Reset body and page */
-              body { 
-                margin: 0 !important; 
-                padding: 0 !important;
-                background: white !important;
-              }
-              
-              /* Position bill copies at top left */
-              .bill-copy { 
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                page-break-after: always;
-                padding: 40px !important;
-                margin: 0 !important;
-                background: white !important;
-                transform: none !important;
-              }
-              
-              .bill-copy:last-child { 
-                page-break-after: auto; 
-              }
-              
-              @page { 
-                margin: 0.5cm; 
-                size: A4; 
-              }
+  body * {
+    visibility: hidden;
+  }
+
+  .bill-preview-container,
+  .bill-preview-container * {
+    visibility: visible;
+  }
+
+  .bill-preview-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .bill-copy {
+    transform: none !important;
+    width: 210mm !important;
+    min-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+    page-break-after: always;
+    background: white !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+}
               
               /* Restore desktop layout for print */
               .bill-copy > div:first-child {

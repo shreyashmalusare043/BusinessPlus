@@ -71,28 +71,38 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
       </div>
 
       {/* Challan Details */}
-      <div className="text-left md:text-right">
-        <div className="space-y-1">
-          <div className="flex text-left text-xs justify-start md:justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Challan No:</span>
-            <span className="text-sm font-bold text-gray-900">{challan.challan_no}</span>
-          </div>
-          <div className="flex justify-start md:justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Date:</span>
-            <span className="text-sm font-bold text-gray-900">{new Date(challan.challan_date).toLocaleDateString()}</span>
-          </div>
-          <div className="flex justify-start md:justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Place of Supply:</span>
-            <span className="text-sm font-bold text-gray-900">{challan.place_of_supply}</span>
-          </div>
-          <div className="flex justify-start md:justify-end gap-4">
-            <span className="text-sm font-semibold text-gray-500">Purpose:</span>
-            <span className="text-sm font-bold text-primary">{purposeLabels[challan.purpose]}</span>
-          </div>
-        </div>
+<div className="flex justify-end w-full">
+  <div className="text-right pr-5">
+    <div className="space-y-1">
+      
+      <div className="flex justify-end gap-4">
+        <span className="text-sm font-semibold text-gray-500">Challan No:</span>
+        <span className="text-sm font-bold text-gray-900">{challan.challan_no}</span>
       </div>
-    </div>
 
+      <div className="flex justify-end gap-4">
+        <span className="text-sm font-semibold text-gray-500">Date:</span>
+        <span className="text-sm font-bold text-gray-900">
+          {new Date(challan.challan_date).toLocaleDateString()}
+        </span>
+      </div>
+
+      <div className="flex justify-end gap-4">
+        <span className="text-sm font-semibold text-gray-500">Place of Supply:</span>
+        <span className="text-sm font-bold text-gray-900">{challan.place_of_supply}</span>
+      </div>
+
+      <div className="flex justify-end gap-4">
+        <span className="text-sm font-semibold text-gray-500">Purpose:</span>
+        <span className="text-sm font-bold text-primary">
+          {purposeLabels[challan.purpose]}
+        </span>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
     {/* Items Table */}
     <div className="mb-4 md:mb-8 overflow-x-auto -mx-2 px-2 md:mx-0 md:px-0">
       <table className="w-full text-sm" style={{ minWidth: '500px' }}>
