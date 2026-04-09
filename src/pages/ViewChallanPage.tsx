@@ -403,45 +403,38 @@ export default function ViewChallanPage() {
             @media print {
               /* Hide everything except the challan content */
               body * {
-                visibility: hidden;
-              }
-              
-              /* Show only the printable content */
-              .challan-copy, .challan-copy * {
-                visibility: visible;
-              }
-              
-              /* Reset body and page */
-              body { 
-                margin: 0 !important; 
-                padding: 0 !important;
-                background: white !important;
-              }
-              
-              /* Position challan copies at top left */
-              .challan-preview-container {
-  position: static !important;
-}
+    visibility: hidden;
+  }
 
-.challan-copy {
-  position: relative !important;
-  width: 210mm !important;
-  min-width: 210mm !important;
-  margin: 0 auto !important;
-  padding: 20px !important;
-  page-break-after: always !important;
-  transform: none !important;
-  background: white !important;
+  .challan-preview-container,
+  .challan-preview-container * {
+    visibility: visible;
+  }
+
+  .challan-preview-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .challan-copy {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    page-break-after: always;
+    background: white;
+  }
+
+  .challan-copy:last-child {
+    page-break-after: auto;
+  }
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
 }
-              
-              .challan-copy:last-child { 
-                page-break-after: auto; 
-              }
-              
-              @page { 
-                margin: 0.5cm; 
-                size: A4; 
-              }
               
               /* Restore desktop layout for print */
               .challan-copy > div:first-child {
