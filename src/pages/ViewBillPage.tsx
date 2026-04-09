@@ -12,7 +12,7 @@ import html2pdf from 'html2pdf.js';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid', breakInside: 'avoid', marginBottom: '2rem', padding: '20px' }}>
+  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid', breakInside: 'avoid' , marginBottom: '2rem', padding: '20px' }}>
     {/* Header Section */}
     <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
@@ -34,7 +34,9 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
       {/* Invoice Title & Copy Type */}
       <div className="text-left md:text-right w-full md:w-auto">
         <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">INVOICE</h2>
-        <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
+        <span className="inline-block text-xs font-semibold px-3 py-1 uppercase tracking-wide"
+  style={{ backgroundColor: '#111827', color: '#ffffff' }}
+>
           {copyType}
         </span>
       </div>
@@ -121,7 +123,10 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
             <span className="text-gray-600">SGST (9%)</span>
             <span className="font-medium text-gray-900">₹{bill.total_sgst.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between py-3 bg-primary text-primary-foreground px-4 mt-2">
+          <div 
+  className="flex justify-between py-3 px-4 mt-2"
+  style={{ backgroundColor: '#f97316', color: '#ffffff' }}
+>
             <span className="font-bold text-sm md:text-base">Total Amount</span>
             <span className="font-bold text-lg md:text-xl">₹{bill.grand_total.toFixed(2)}</span>
           </div>
@@ -410,6 +415,11 @@ export default function ViewBillPage() {
             }
             
             @media print {
+
+             * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
   body * {
     visibility: hidden;
   }
@@ -427,23 +437,14 @@ export default function ViewBillPage() {
   }
 
   .bill-copy {
-        transform: none !important;
-        width: 210mm !important;
-        min-width: 210mm !important;
-        margin: 0 auto !important;
-        padding: 20px !important;
-        page-break-after: always;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-        background: white !important;
-      }
-
-      /* ✅🔥 ADD THIS HERE */
-      table, tr, td {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-      }
-
+    transform: none !important;
+    width: 210mm !important;
+    min-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+    page-break-after: always;
+    background: white !important;
+  }
 
   @page {
     size: A4 portrait;
