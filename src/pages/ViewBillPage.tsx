@@ -12,7 +12,7 @@ import html2pdf from 'html2pdf.js';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid', breakInside: 'avoid' , marginBottom: '2rem', padding: '20px' }}>
+  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid',breakInside: 'avoid' , marginBottom: '2rem', padding: '20px' }}>
     {/* Header Section */}
     <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
@@ -34,7 +34,8 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
       {/* Invoice Title & Copy Type */}
       <div className="text-left md:text-right w-full md:w-auto">
         <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">INVOICE</h2>
-        <span className="inline-block text-xs font-semibold px-3 py-1 uppercase tracking-wide"
+        <span 
+  className="inline-block text-xs font-semibold px-3 py-1 uppercase tracking-wide"
   style={{
   backgroundColor: '#111827',
   color: '#ffffff',
@@ -370,10 +371,11 @@ export default function ViewBillPage() {
           {`
             /* Mobile preview scaling - show complete A4 page */
 
-             * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  } 
+            * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
             @media screen and (max-width: 767px) {
               .bill-preview-container {
                 overflow: hidden;
@@ -430,8 +432,6 @@ export default function ViewBillPage() {
             }
             
             @media print {
-
-             
   body * {
     visibility: hidden;
   }
