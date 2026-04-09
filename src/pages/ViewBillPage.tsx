@@ -24,7 +24,8 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
           <div className="text-xs md:text-sm text-gray-600 space-y-0.5">
             <p>{company.address}</p>
-            <p className="break-words">Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}</p>
+            <p style={{ wordBreak: 'normal',overflowWrap: 'anywhere' }}> Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}
+</p>
             {company.website && <p className="break-words">Website: {company.website}</p>}
             <p className="font-semibold text-gray-800 mt-1">GSTIN: {company.gst_number}</p>
           </div>
@@ -87,7 +88,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
     {/* Items Table */}
     <div className="mb-6 md:mb-8 overflow-x-auto -mx-2 px-2 md:mx-0 md:px-0">
-      <table className="w-full" style={{ minWidth: '500px' }}>
+      <table className="w-full" style={{ minWidth: '100px' }}>
         <thead>
           <tr className="border-b-2 border-gray-900">
             <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-12 min-w-[40px]">#</th>
@@ -276,7 +277,7 @@ export default function ViewBillPage() {
         
         // Remove all scaling and force full size
         htmlCopy.style.transform = 'none';
-        htmlCopy.style.width = '210mm';
+        htmlCopy.style.width = '190mm';
         htmlCopy.style.minWidth = '210mm';
         htmlCopy.style.marginBottom = '2rem';
       });
