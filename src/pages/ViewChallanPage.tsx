@@ -353,7 +353,7 @@ export default function ViewChallanPage() {
               
               .challan-copy {
   transform-origin: top left;
-  transform: scale(0.5); /* थोडा वाढवला */
+  transform: scale(0.45); /* थोडा वाढवला */
   width: 210mm !important;
   min-width: 210mm !important;
   margin-bottom: -300px !important;
