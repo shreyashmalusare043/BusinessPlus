@@ -332,10 +332,7 @@ export default function ViewChallanPage() {
           Back to Delivery Challans
         </Button>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={handleDownloadPDF} className="w-full sm:w-auto">
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
-          </Button>
+          
           <Button onClick={handlePrint} className="w-full sm:w-auto">
             <Printer className="h-4 w-4 mr-2" />
             Print Challan
@@ -422,17 +419,20 @@ export default function ViewChallanPage() {
               }
               
               /* Position challan copies at top left */
-              .challan-copy { 
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                page-break-after: always;
-                padding: 40px !important;
-                margin: 0 !important;
-                background: white !important;
-                transform: none !important;
-              }
+              .challan-preview-container {
+  position: static !important;
+}
+
+.challan-copy {
+  position: relative !important;
+  width: 210mm !important;
+  min-width: 210mm !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  page-break-after: always !important;
+  transform: none !important;
+  background: white !important;
+}
               
               .challan-copy:last-child { 
                 page-break-after: auto; 
