@@ -365,10 +365,7 @@ console.log('PDF generated successfully');
           Back to Bills
         </Button>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={handleDownloadPDF} className="w-full sm:w-auto">
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
-          </Button>
+          
           <Button onClick={handlePrint} className="w-full sm:w-auto">
             <Printer className="h-4 w-4 mr-2" />
             Print Bill
