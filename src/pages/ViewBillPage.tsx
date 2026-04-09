@@ -24,7 +24,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
           <div className="text-xs md:text-sm text-gray-600 space-y-0.5">
             <p>{company.address}</p>
-            <p style={{ wordBreak: 'normal',overflowWrap: 'anywhere' }}> Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}
+            <p style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}> Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}
 </p>
             {company.website && <p className="break-words">Website: {company.website}</p>}
             <p className="font-semibold text-gray-800 mt-1">GSTIN: {company.gst_number}</p>
@@ -276,10 +276,11 @@ export default function ViewBillPage() {
         };
         
         // Remove all scaling and force full size
-        htmlCopy.style.transform = 'none';
-        htmlCopy.style.width = '190mm';
+      
+        htmlCopy.style.width = '210mm';
         htmlCopy.style.minWidth = '210mm';
-        htmlCopy.style.marginBottom = '2rem';
+        htmlCopy.style.maxWidth = '210mm';
+        htmlCopy.style.boxSizing = 'border-box';
       });
 
       const opt = {
@@ -301,8 +302,17 @@ export default function ViewBillPage() {
       };
 
       console.log('Generating PDF with options:', opt);
-      await html2pdf().set(opt).from(element).save();
-      console.log('PDF generated successfully');
+
+const firstCopy = element.querySelector('.bill-copy') as HTMLElement;
+
+if (!firstCopy) {
+  console.error('No bill copy found');
+  return;
+}
+
+await html2pdf().set(opt).from(firstCopy).save();
+
+console.log('PDF generated successfully');
 
       // Restore mobile scaling
       billCopies.forEach((copy, index) => {
