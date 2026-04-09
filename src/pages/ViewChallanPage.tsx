@@ -430,6 +430,14 @@ export default function ViewChallanPage() {
     page-break-after: auto;
   }
 
+  /* Fix copy label background in print */
+.challan-copy span {
+  background: #111 !important;
+  color: #fff !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
   @page {
     size: A4;
     margin: 10mm;
