@@ -441,13 +441,16 @@ console.log('PDF generated successfully');
             
             @media print {
   body * {
+     body * {
     visibility: hidden;
   }
 
   .bill-preview-container,
-  .bill-preview-container * {
-    visibility: visible;
+  .bill-preview-container *,
+  .watermark {
+    visibility: visible !important;
   }
+}
 
   
     html, body {
@@ -530,7 +533,15 @@ console.log('PDF generated successfully');
         <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
         
         {/* Watermark - Only show for free users */}
-        {showWatermark && <Watermark type="bill" />}
+        <div ref={printRef} className="bg-white p-2 md:p-4 bill-preview-container">
+  
+  <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
+  <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
+  <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
+
+  {showWatermark && <Watermark type="bill" />}
+
+</div>
       </div>
     </div>
   );
