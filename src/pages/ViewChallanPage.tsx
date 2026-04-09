@@ -352,14 +352,14 @@ export default function ViewChallanPage() {
               }
               
               .challan-copy {
-  transform-origin: top left;
-  transform: scale(0.45); /* थोडा वाढवला */
-  width: 210mm !important;
-  min-width: 210mm !important;
-  margin-bottom: -300px !important;
-  padding: 20px !important;
-}
-            
+                transform-origin: top left;
+                transform: scale(0.35);
+                width: 230mm !important;
+                min-width: 230 !important;
+                margin-bottom: -400px !important;
+                padding: 20px !important;
+              }
+              
               /* Force desktop layout - override all responsive classes */
               .challan-copy * {
                 max-width: none !important;
