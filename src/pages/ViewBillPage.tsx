@@ -441,6 +441,14 @@ export default function ViewBillPage() {
     visibility: visible;
   }
 
+  
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background: white !important;
+    }
+
+
   .bill-preview-container {
     position: absolute;
     left: 0;
