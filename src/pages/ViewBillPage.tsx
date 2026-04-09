@@ -35,7 +35,12 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
       <div className="text-left md:text-right w-full md:w-auto">
         <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">INVOICE</h2>
         <span className="inline-block text-xs font-semibold px-3 py-1 uppercase tracking-wide"
-  style={{ backgroundColor: '#111827', color: '#ffffff' }}
+  style={{
+  backgroundColor: '#111827',
+  color: '#ffffff',
+  WebkitPrintColorAdjust: 'exact',
+  printColorAdjust: 'exact'
+}}
 >
           {copyType}
         </span>
@@ -125,7 +130,12 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
           </div>
           <div 
   className="flex justify-between py-3 px-4 mt-2"
-  style={{ backgroundColor: '#f97316', color: '#ffffff' }}
+  style={{
+  backgroundColor: '#f97316',
+  color: '#ffffff',
+  WebkitPrintColorAdjust: 'exact',
+  printColorAdjust: 'exact'
+}}
 >
             <span className="font-bold text-sm md:text-base">Total Amount</span>
             <span className="font-bold text-lg md:text-xl">₹{bill.grand_total.toFixed(2)}</span>
@@ -359,6 +369,11 @@ export default function ViewBillPage() {
         <style>
           {`
             /* Mobile preview scaling - show complete A4 page */
+
+             * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  } 
             @media screen and (max-width: 767px) {
               .bill-preview-container {
                 overflow: hidden;
@@ -416,10 +431,7 @@ export default function ViewBillPage() {
             
             @media print {
 
-             * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+             
   body * {
     visibility: hidden;
   }
