@@ -51,9 +51,9 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
       {/* Challan Title & Copy Type */}
       <div className="text-left md:text-right w-full md:w-auto">
         <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">DELIVERY CHALLAN</h2>
-        <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
-          {copyType}
-        </span>
+        <span className="copy-badge inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
+  {copyType}
+</span>
       </div>
     </div>
 
@@ -430,13 +430,13 @@ export default function ViewChallanPage() {
     page-break-after: auto;
   }
 
-  /* Fix copy label background in print */
-.challan-copy span {
-  background: #111 !important;
+  .copy-badge {
+  background: #000 !important;
   color: #fff !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
+  
 
   @page {
     size: A4;
