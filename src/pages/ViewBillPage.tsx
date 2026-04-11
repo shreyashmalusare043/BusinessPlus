@@ -3,12 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { getBillById, getMyCompany, checkSubscriptionStatus } from '@/db/api';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Printer, ArrowLeft, Download } from 'lucide-react';
+import { Printer, ArrowLeft } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { Watermark } from '@/components/ui/watermark';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BillWithItems, Company } from '@/types';
-import html2pdf from 'html2pdf.js';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
@@ -237,99 +236,6 @@ export default function ViewBillPage() {
     contentRef: printRef,
   });
 
-  const handleDownloadPDF = async () => {
-  if (!printRef.current || !bill) return;
-
-  const element = printRef.current;
-
-  const copies = element.querySelectorAll('.bill-copy');
-
-  copies.forEach((copy: any) => {
-    copy.style.transform = 'none';
-    copy.style.width = '210mm';
-    copy.style.minWidth = '210mm';
-  });
-
-  // 🔥 WAIT for DOM update (IMPORTANT)
-  await new Promise((res) => setTimeout(res, 500));
-
-    try {
-      const element = printRef.current;
-      const billDate = new Date(bill.bill_date).toISOString().split('T')[0];
-      const filename = `Bill_${bill.bill_no}_${billDate}.pdf`;
-
-      console.log('Starting PDF generation for:', filename);
-
-      // Temporarily remove mobile scaling for PDF generation
-      const billCopies = element.querySelectorAll('.bill-copy');
-      console.log('Found bill copies:', billCopies.length);
-      
-      const originalStyles: Array<{transform: string; width: string; margin: string; minWidth: string}> = [];
-      
-      billCopies.forEach((copy, index) => {
-        const htmlCopy = copy as HTMLElement;
-        originalStyles[index] = {
-          transform: htmlCopy.style.transform,
-          width: htmlCopy.style.width,
-          margin: htmlCopy.style.marginBottom,
-          minWidth: htmlCopy.style.minWidth
-        };
-        
-        // Remove all scaling and force full size
-      
-        htmlCopy.style.width = '210mm';
-        htmlCopy.style.minWidth = '210mm';
-        htmlCopy.style.maxWidth = '210mm';
-        htmlCopy.style.boxSizing = 'border-box';
-      });
-
-      const opt = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: filename,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          logging: true,
-          letterRendering: true
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' as const
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
-      console.log('Generating PDF with options:', opt);
-
-const firstCopy = element.querySelector('.bill-copy') as HTMLElement;
-
-if (!firstCopy) {
-  console.error('No bill copy found');
-  return;
-}
-
-await html2pdf().set(opt).from(firstCopy).save();
-
-console.log('PDF generated successfully');
-
-      // Restore mobile scaling
-      billCopies.forEach((copy, index) => {
-        const htmlCopy = copy as HTMLElement;
-        htmlCopy.style.transform = originalStyles[index].transform;
-        htmlCopy.style.width = originalStyles[index].width;
-        htmlCopy.style.marginBottom = originalStyles[index].margin;
-        htmlCopy.style.minWidth = originalStyles[index].minWidth;
-      });
-      
-      console.log('Mobile scaling restored');
-    } catch (error) {
-      console.error('Failed to generate PDF:', error);
-      alert('Failed to generate PDF. Please check the console for details.');
-    }
-  };
-
   if (loading) {
     return (
       <div className="space-y-6">
@@ -378,143 +284,141 @@ console.log('PDF generated successfully');
         <style>
           {`
             /* Mobile preview scaling - show complete A4 page */
-
             * {
-  -webkit-print-color-adjust: exact !important;
-  print-color-adjust: exact !important;
-}
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
 
             @media screen and (max-width: 767px) {
               .bill-preview-container {
                 overflow: hidden;
                 width: 100%;
               }
-              
+
               .bill-copy {
                 transform-origin: top left;
                 transform: scale(0.35);
                 width: 230mm !important;
                 min-width: 210mm !important;
-                margin-bottom: -500px !important;
+                margin-bottom: 1.5rem !important;
                 padding: 20px !important;
               }
-              
+
               /* Force desktop layout - override all responsive classes */
               .bill-copy * {
                 max-width: none !important;
               }
-              
+
               .bill-copy > div:first-child {
                 flex-direction: row !important;
                 align-items: flex-start !important;
                 justify-content: space-between !important;
               }
-              
-              /* Force Invoice title to right side */
+
               .bill-copy > div:first-child > div:last-child {
                 text-align: right !important;
                 width: auto !important;
               }
-              
+
               .bill-copy h1 {
                 font-size: 1.875rem !important;
               }
-              
+
               .bill-copy h2 {
                 font-size: 2.25rem !important;
               }
-              
+
               .bill-copy img {
                 height: 5rem !important;
                 width: 5rem !important;
               }
-              
+
               .bill-copy .grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
               }
-              
+
               .bill-copy table {
                 width: 100% !important;
                 font-size: 0.875rem !important;
               }
             }
-            
+
             @media print {
-  body * {
-     body * {
-    visibility: hidden;
-  }
+              body * {
+                visibility: hidden;
+              }
 
-  .bill-preview-container,
-  .bill-preview-container *,
-  .watermark {
-    visibility: visible !important;
-  }
-}
+              .bill-preview-container,
+              .bill-preview-container *,
+              .watermark {
+                visibility: visible !important;
+              }
 
-  
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      background: white !important;
-    }
+              html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+              }
 
+              .bill-preview-container {
+                position: relative;
+                width: 100%;
+              }
 
-  .bill-preview-container {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
+              .bill-copy {
+                transform: none !important;
+                width: 210mm !important;
+                min-width: 210mm !important;
+                margin: 0 auto 1.5rem !important;
+                padding: 20px !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                background: white !important;
+              }
 
-  .bill-copy {
-    transform: none !important;
-    width: 210mm !important;
-    min-width: 210mm !important;
-    margin: 0 auto !important;
-    padding: 20px !important;
-    page-break-after: always;
-    background: white !important;
-  }
+              @page {
+                size: A4 portrait;
+                margin: 15mm;
+              }
 
-  @page {
-    size: A4 portrait;
-    margin: 15mm;
-  }
-}
-              
-              /* Restore desktop layout for print */
               .bill-copy > div:first-child {
                 flex-direction: row !important;
                 margin-bottom: 2rem !important;
                 padding-bottom: 1.5rem !important;
               }
+
               .bill-copy h1 {
                 font-size: 1.875rem !important;
               }
+
               .bill-copy h2 {
                 font-size: 2.25rem !important;
                 text-align: right !important;
               }
+
               .bill-copy img {
                 height: 5rem !important;
                 width: 5rem !important;
               }
+
               .bill-copy .grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 gap: 2rem !important;
               }
+
               .bill-copy table {
                 min-width: 100% !important;
               }
-              /* Restore summary section width for print */
+
               .bill-copy > div:has(> div > .space-y-2) {
                 justify-content: flex-end !important;
               }
+
               .bill-copy > div > div.w-full {
                 width: 20rem !important;
               }
-              /* Right align INVOICE heading and copy label for print */
+
               .bill-copy > div:first-child > div:last-child {
                 text-align: right !important;
                 width: auto !important;
@@ -522,26 +426,18 @@ console.log('PDF generated successfully');
             }
           `}
         </style>
-        
+
         {/* Original Copy */}
         <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
-        
+
         {/* Duplicate Copy */}
         <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
-        
+
         {/* Triplicate Copy */}
         <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
-        
+
         {/* Watermark - Only show for free users */}
-        <div ref={printRef} className="bg-white p-2 md:p-4 bill-preview-container">
-  
-  <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
-  <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
-  <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
-
-  {showWatermark && <Watermark type="bill" />}
-
-</div>
+        {showWatermark && <Watermark type="bill" />}
       </div>
     </div>
   );
