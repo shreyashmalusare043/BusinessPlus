@@ -289,25 +289,35 @@ export default function ViewBillPage() {
               print-color-adjust: exact !important;
             }
 
-            @media screen and (max-width: 767px) {
-              .bill-preview-container {
-                overflow: hidden;
-                width: 100%;
-              }
+           @media screen and (max-width: 767px) {
 
-              .bill-copy {
-                transform-origin: top left;
-                transform: scale(0.35);
-                width: 230mm !important;
-                min-width: 210mm !important;
-                margin-bottom: 1.5rem !important;
-                padding: 20px !important;
-              }
+  .bill-preview-container {
+    width: 100%;
+    overflow-x: auto;   /* ✅ IMPORTANT */
+    display: flex;
+    justify-content: center;
+  }
 
-              /* Force desktop layout - override all responsive classes */
-              .bill-copy * {
-                max-width: none !important;
-              }
+  .bill-copy {
+    transform-origin: top center;
+    transform: scale(0.42); /* 👈 slightly reduce for safety */
+
+    width: 210mm !important;
+    min-width: 210mm !important;
+
+    margin: 0 auto 20px auto !important;
+    padding: 20px !important;
+  }
+
+  /* Prevent any element overflow */
+  .bill-copy * {
+    max-width: none  !important;
+    box-sizing: border-box;
+  }
+
+}
+
+              
 
               .bill-copy > div:first-child {
                 flex-direction: row !important;
