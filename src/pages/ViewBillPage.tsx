@@ -289,62 +289,18 @@ export default function ViewBillPage() {
               print-color-adjust: exact !important;
             }
 
-           @media screen and (max-width: 767px) {
-
-  .bill-preview-container {
-    width: 100%;
-    overflow-x: auto;   /* ✅ IMPORTANT */
-    display: flex;
-    justify-content: center;
-  }
-
-  .bill-copy {
-    transform-origin: top center;
-    transform: scale(0.42); /* 👈 slightly reduce for safety */
-
-    width: 210mm !important;
-    min-width: 210mm !important;
-
-    margin: 0 auto 20px auto !important;
-    padding: 20px !important;
-  }
-
-  /* Prevent any element overflow */
-  .bill-copy * {
-    max-width: none  !important;
-    box-sizing: border-box;
-  }
-
-}
-
-              
-
-              .bill-copy > div:first-child {
-                flex-direction: row !important;
-                align-items: flex-start !important;
-                justify-content: space-between !important;
+            @media screen and (max-width: 767px) {
+              .bill-preview-container {
+                overflow-x: auto;
+                width: 100%;
               }
 
-              .bill-copy > div:first-child > div:last-child {
-                text-align: right !important;
+              .bill-copy {
+                transform: none !important;
                 width: auto !important;
-              }
-
-              .bill-copy h1 {
-                font-size: 1.875rem !important;
-              }
-
-              .bill-copy h2 {
-                font-size: 2.25rem !important;
-              }
-
-              .bill-copy img {
-                height: 5rem !important;
-                width: 5rem !important;
-              }
-
-              .bill-copy .grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                min-width: 0 !important;
+                margin-bottom: 1.5rem !important;
+                padding: 20px !important;
               }
 
               .bill-copy table {
