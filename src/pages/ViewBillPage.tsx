@@ -233,8 +233,18 @@ export default function ViewBillPage() {
   };
 
   const handlePrint = useReactToPrint({
-    contentRef: printRef,
-  });
+  contentRef: printRef,
+  documentTitle: 'Invoice',
+  pageStyle: `
+    @page {
+      size: A4 portrait;
+      margin: 5mm;
+    }
+    body {
+      -webkit-print-color-adjust: exact;
+    }
+  `,
+});
 
   if (loading) {
     return (
@@ -299,6 +309,8 @@ export default function ViewBillPage() {
                 transform: none !important;
                 width: auto !important;
                 min-width: 0 !important;
+                transform: scale(0.6);
+                transform-origin: top center;
                 margin-bottom: 1.5rem !important;
                 padding: 20px !important;
               }
@@ -335,6 +347,8 @@ export default function ViewBillPage() {
                 transform: none !important;
                 width: 210mm !important;
                 min-width: 210mm !important;
+                transform: scale(0.95);
+                transform-origin: top center;
                 margin: 0 auto 1.5rem !important;
                 padding: 20px !important;
                 page-break-after: always;
@@ -345,7 +359,7 @@ export default function ViewBillPage() {
 
               @page {
                 size: A4 portrait;
-                margin: 15mm;
+                margin: 5mm;
               }
 
               .bill-copy > div:first-child {
