@@ -302,7 +302,7 @@ export default function ViewBillPage() {
             @media screen and (max-width: 767px) {
               .bill-preview-container {
                 overflow: hidden;
-                width: 100%;
+                width: 100%;;
                 padding: 0 !important;
                 display: flex;
                 flex-direction: column;
@@ -312,18 +312,32 @@ export default function ViewBillPage() {
 
               .bill-copy {
                 transform-origin: top center;
-                transform: scale(0.32);
+                transform: scale(0.37);
                 width: 210mm !important;
                 min-width: 210mm !important;
-                margin: 0 !important;
+                margin: 1rem !important;
                 padding: 20px !important;
-                page-break-after: always;
                 page-break-inside: avoid;
                 break-inside: avoid;
               }
 
+              .bill-copy:last-of-type {
+                margin-bottom: 1rem !important;
+              }
+
               .bill-copy * {
                 max-width: none !important;
+              }
+
+              .bill-copy > div:first-child {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: flex-start !important;
+              }
+
+              .bill-copy > div:first-child > div:last-child {
+                text-align: right !important;
+                width: auto !important;
               }
 
               .bill-copy table {
