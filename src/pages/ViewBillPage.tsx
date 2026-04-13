@@ -11,7 +11,7 @@ import type { BillWithItems, Company } from '@/types';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid',breakInside: 'avoid' , marginBottom: '2rem', padding: '20px' }}>
+  <div className="bill-copy bg-white" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', padding: '20px' }}>
     {/* Header Section */}
     <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
@@ -302,7 +302,7 @@ export default function ViewBillPage() {
             @media screen and (max-width: 767px) {
               .bill-preview-container {
                 overflow: hidden;
-                width: 100%;;
+                width: 100%;
                 padding: 0 !important;
                 display: flex;
                 flex-direction: column;
@@ -315,14 +315,11 @@ export default function ViewBillPage() {
                 transform: scale(0.37);
                 width: 210mm !important;
                 min-width: 210mm !important;
-                margin: 1rem !important;
+                margin: 0 !important;
                 padding: 20px !important;
                 page-break-inside: avoid;
                 break-inside: avoid;
-              }
-
-              .bill-copy:last-of-type {
-                margin-bottom: 1rem !important;
+                page-break-after: avoid !important;
               }
 
               .bill-copy * {
@@ -372,14 +369,16 @@ export default function ViewBillPage() {
                 transform: none !important;
                 width: 210mm !important;
                 min-width: 210mm !important;
-                transform: scale(0.95);
-                transform-origin: top center;
-                margin: 0 auto 1.5rem !important;
+                margin: 0 auto !important;
                 padding: 20px !important;
                 page-break-after: always;
                 page-break-inside: avoid;
                 break-inside: avoid;
                 background: white !important;
+              }
+
+              .bill-copy:last-of-type {
+                page-break-after: avoid !important;
               }
 
               @page {
