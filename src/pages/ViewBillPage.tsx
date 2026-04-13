@@ -398,6 +398,8 @@ export default function ViewBillPage() {
     width: 20rem !important;
   }
 }
+            }
+          `}
         </style>
 
         {/* Original Copy */}
