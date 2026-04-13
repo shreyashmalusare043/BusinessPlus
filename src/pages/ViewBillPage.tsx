@@ -10,8 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { BillWithItems, Company } from '@/types';
 
 // Bill Copy Component - Minimalist Corporate Style
-const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid',breakInside: 'avoid' , marginBottom: '2rem', padding: '20px' }}>
+const BillCopy = ({ bill, company, copyType, isLast }: { bill: BillWithItems; company: Company; copyType: string; isLast?: boolean }) => (
+  <div className="bill-copy bg-white" style={{ pageBreakAfter: isLast ? 'auto' : 'always', pageBreakInside: 'avoid', breakInside: 'avoid', marginBottom: '2rem', padding: '20px' }}>
     {/* Header Section */}
     <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
@@ -303,14 +303,17 @@ export default function ViewBillPage() {
               .bill-preview-container {
                 overflow-x: hidden;
                 width: 100%;
+                padding: 0 !important;
+                display: flex;
+                justify-content: center;
               }
 
               .bill-copy {
-                transform-origin: top left;
-                transform: scale(0.36);
+                transform-origin: top center;
+                transform: scale(0.34);
                 width: 210mm !important;
                 min-width: 210mm !important;
-                margin-bottom: 1.5rem !important;
+                margin: 0 auto 1.5rem !important;
                 padding: 20px !important;
               }
 
@@ -451,7 +454,7 @@ export default function ViewBillPage() {
         <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
 
         {/* Triplicate Copy */}
-        <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
+        <BillCopy bill={bill} company={company} copyType="TRIPLICATE" isLast />
 
         {/* Watermark - Only show for free users */}
         {showWatermark && <Watermark type="bill" />}
