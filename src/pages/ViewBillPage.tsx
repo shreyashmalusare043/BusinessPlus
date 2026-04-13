@@ -289,71 +289,146 @@ export default function ViewBillPage() {
         </div>
       </div>
 
-      {/* Preview Container */}
-      <div className="bill-preview-wrapper overflow-x-auto bg-gray-100 p-2 md:p-8 rounded-lg">
+      {/* Printable Content */}
+      <div ref={printRef} className="bg-white p-2 md:p-4 bill-preview-container">
         <style>
           {`
-            /* 1. Global Print Settings */
-            @media print {
-              @page {
-                size: A4 portrait;
-                margin: 10mm;
-              }
-              body {
-                background: white !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-              }
-              .bill-preview-wrapper {
-                padding: 0 !important;
-                background: white !important;
-                overflow: visible !important;
-              }
-              .bill-copy {
-                width: 100% !important;
-                margin: 0 0 20px 0 !important;
-                padding: 0 !important;
-                box-shadow: none !important;
-                break-inside: avoid;
-              }
+            /* Mobile preview scaling - show complete A4 page */
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
 
-            /* 2. Mobile Mini-A4 Preview Logic */
-            @media screen and (max-width: 768px) {
-              .bill-preview-wrapper {
+            @media screen and (max-width: 767px) {
+              .bill-preview-container {
+                overflow: hidden;
+                width: 100%;
+                padding: 0 !important;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                gap: 0 !important;
               }
+
               .bill-copy {
-                /* Shrink the A4 to fit mobile width like a mini-preview */
-                width: 800px !important; /* Standard width fixed for consistency */
-                transform: scale(0.42); /* Adjust this scale to fit your phone screen */
                 transform-origin: top center;
-                margin-bottom: -450px !important; /* Compels the height after scaling */
-                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                transform: scale(0.32);
+                width: 210mm !important;
+                min-width: 210mm !important;
+                margin: 0 !important;
+                padding: 20px !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
+              }
+
+              .bill-copy * {
+                max-width: none !important;
+              }
+
+              .bill-copy table {
+                width: 100% !important;
+                font-size: 0.875rem !important;
               }
             }
 
-            /* 3. Desktop Preview */
-            @media screen and (min-width: 769px) {
+            @media print {
+              body * {
+                visibility: hidden;
+              }
+
+              .bill-preview-container,
+              .bill-preview-container *,
+              .watermark {
+                visibility: visible !important;
+              }
+
+              html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+              }
+
+              .bill-preview-container {
+                position: relative;
+                width: 100%;
+              }
+
               .bill-copy {
-                width: 210mm;
-                min-height: 297mm;
-                margin: 0 auto 2rem;
-                padding: 40px !important;
-                box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+                transform: none !important;
+                width: 210mm !important;
+                min-width: 210mm !important;
+                transform: scale(0.95);
+                transform-origin: top center;
+                margin: 0 auto 1.5rem !important;
+                padding: 20px !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                background: white !important;
+              }
+
+              @page {
+                size: A4 portrait;
+                margin: 5mm;
+              }
+
+              .bill-copy > div:first-child {
+                flex-direction: row !important;
+                margin-bottom: 2rem !important;
+                padding-bottom: 1.5rem !important;
+              }
+
+              .bill-copy h1 {
+                font-size: 1.875rem !important;
+              }
+
+              .bill-copy h2 {
+                font-size: 2.25rem !important;
+                text-align: right !important;
+              }
+
+              .bill-copy img {
+                height: 5rem !important;
+                width: 5rem !important;
+              }
+
+              .bill-copy .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 2rem !important;
+              }
+
+              .bill-copy table {
+                min-width: 100% !important;
+              }
+
+              .bill-copy > div:has(> div > .space-y-2) {
+                justify-content: flex-end !important;
+              }
+
+              .bill-copy > div > div.w-full {
+                width: 20rem !important;
+              }
+
+              .bill-copy > div:first-child > div:last-child {
+                text-align: right !important;
+                width: auto !important;
               }
             }
           `}
         </style>
 
-        <div ref={printRef} className="printable-content">
-          <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
-          <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
-          <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
-          {showWatermark && <Watermark type="bill" />}
-        </div>
+        {/* Original Copy */}
+        <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
+
+        {/* Duplicate Copy */}
+        <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
+
+        {/* Triplicate Copy */}
+        <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
+
+        {/* Watermark - Only show for free users */}
+        {showWatermark && <Watermark type="bill" />}
       </div>
     </div>
   );
