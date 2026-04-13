@@ -10,8 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { BillWithItems, Company } from '@/types';
 
 // Bill Copy Component - Minimalist Corporate Style
-const BillCopy = ({ bill, company, copyType, isLast }: { bill: BillWithItems; company: Company; copyType: string; isLast?: boolean }) => (
-  <div className="bill-copy bg-white" style={{ pageBreakAfter: isLast ? 'auto' : 'always', pageBreakInside: 'avoid', breakInside: 'avoid', marginBottom: '2rem', padding: '20px' }}>
+const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
+  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid',breakInside: 'avoid' , marginBottom: '2rem', padding: '20px' }}>
     {/* Header Section */}
     <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
@@ -295,156 +295,109 @@ export default function ViewBillPage() {
           {`
             /* Mobile preview scaling - show complete A4 page */
             * {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
 
-            @media screen and (max-width: 767px) {
-              .bill-preview-container {
-                overflow-x: hidden;
-                width: 100%;
-                padding: 0 !important;
-                display: flex;
-                justify-content: center;
-              }
+/* ✅ MOBILE PREVIEW */
+@media screen and (max-width: 767px) {
+  .bill-preview-container {
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+  }
 
-              .bill-copy {
-                transform-origin: top center;
-                transform: scale(0.34);
-                width: 210mm !important;
-                min-width: 210mm !important;
-                margin: 0 auto 1.5rem !important;
-                padding: 20px !important;
-              }
+  .bill-copy {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    transform: scale(0.6);
+    transform-origin: top center;
+    margin-bottom: 1.5rem !important;
+    padding: 20px !important;
+  }
 
-              .bill-copy * {
-                max-width: none !important;
-              }
+  .bill-copy table {
+    width: 100% !important;
+    font-size: 0.875rem !important;
+  }
+}
 
-              .bill-copy > div:first-child {
-                flex-direction: row !important;
-                align-items: flex-start !important;
-                justify-content: space-between !important;
-              }
+/* ✅ PRINT FIX */
+@media print {
+  body * {
+    visibility: hidden;
+  }
 
-              .bill-copy > div:first-child > div:last-child {
-                text-align: right !important;
-                width: auto !important;
-              }
+  .bill-preview-container,
+  .bill-preview-container *,
+  .watermark {
+    visibility: visible !important;
+  }
 
-              .bill-copy h1 {
-                font-size: 1.875rem !important;
-              }
+  html, body {
+    width: 210mm;
+    height: auto;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
 
-              .bill-copy h2 {
-                font-size: 2.25rem !important;
-              }
+  .bill-preview-container {
+    position: relative;
+    width: 100%;
+  }
 
-              .bill-copy img {
-                height: 5rem !important;
-                width: 5rem !important;
-              }
+  .bill-copy {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    transform: scale(0.92); /* 👈 PERFECT SCALE */
+    transform-origin: top center;
+    margin: 0 auto 1.5rem !important;
+    padding: 20px !important;
+    page-break-after: always;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    background: white !important;
+  }
 
-              .bill-copy .grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-                gap: 2rem !important;
-              }
+  @page {
+    size: A4 portrait;
+    margin: 5mm;
+  }
 
-              .bill-copy table {
-                width: 100% !important;
-                font-size: 0.875rem !important;
-                min-width: 100% !important;
-              }
+  .bill-copy > div:first-child {
+    flex-direction: row !important;
+    margin-bottom: 2rem !important;
+    padding-bottom: 1.5rem !important;
+  }
 
-              .bill-copy > div > div.w-full {
-                width: auto !important;
-              }
-            }
+  .bill-copy h1 {
+    font-size: 1.875rem !important;
+  }
 
-            @media print {
-              body * {
-                visibility: hidden;
-              }
+  .bill-copy h2 {
+    font-size: 2.25rem !important;
+    text-align: right !important;
+  }
 
-              .bill-preview-container,
-              .bill-preview-container *,
-              .watermark {
-                visibility: visible !important;
-              }
+  .bill-copy img {
+    height: 5rem !important;
+    width: 5rem !important;
+  }
 
-              html, body {
-                margin: 0 !important;
-                padding: 0 !important;
-                background: white !important;
-              }
+  .bill-copy .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 2rem !important;
+  }
 
-              .bill-preview-container {
-                position: relative;
-                width: 100%;
-              }
+  .bill-copy table {
+    min-width: 100% !important;
+  }
 
-              .bill-copy {
-                transform: none !important;
-                width: 210mm !important;
-                min-width: 210mm !important;
-                transform: scale(0.95);
-                transform-origin: top center;
-                margin: 0 auto 1.5rem !important;
-                padding: 20px !important;
-                page-break-after: always;
-                page-break-inside: avoid;
-                break-inside: avoid;
-                background: white !important;
-              }
-
-              @page {
-                size: A4 portrait;
-                margin: 5mm;
-              }
-
-              .bill-copy > div:first-child {
-                flex-direction: row !important;
-                margin-bottom: 2rem !important;
-                padding-bottom: 1.5rem !important;
-              }
-
-              .bill-copy h1 {
-                font-size: 1.875rem !important;
-              }
-
-              .bill-copy h2 {
-                font-size: 2.25rem !important;
-                text-align: right !important;
-              }
-
-              .bill-copy img {
-                height: 5rem !important;
-                width: 5rem !important;
-              }
-
-              .bill-copy .grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-                gap: 2rem !important;
-              }
-
-              .bill-copy table {
-                min-width: 100% !important;
-              }
-
-              .bill-copy > div:has(> div > .space-y-2) {
-                justify-content: flex-end !important;
-              }
-
-              .bill-copy > div > div.w-full {
-                width: 20rem !important;
-              }
-
-              .bill-copy > div:first-child > div:last-child {
-                text-align: right !important;
-                width: auto !important;
-              }
-            }
-          `}
+  .bill-copy > div > div.w-full {
+    width: 20rem !important;
+  }
+}
         </style>
 
         {/* Original Copy */}
@@ -454,7 +407,7 @@ export default function ViewBillPage() {
         <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
 
         {/* Triplicate Copy */}
-        <BillCopy bill={bill} company={company} copyType="TRIPLICATE" isLast />
+        <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
 
         {/* Watermark - Only show for free users */}
         {showWatermark && <Watermark type="bill" />}
