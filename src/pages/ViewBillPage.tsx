@@ -240,8 +240,20 @@ export default function ViewBillPage() {
       size: A4 portrait;
       margin: 5mm;
     }
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
     body {
-      -webkit-print-color-adjust: exact;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
+    html {
+      margin: 0;
+      padding: 0;
     }
   `,
 });
@@ -344,6 +356,11 @@ export default function ViewBillPage() {
             }
 
             @media print {
+              * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+
               body * {
                 visibility: hidden;
               }
@@ -358,11 +375,16 @@ export default function ViewBillPage() {
                 margin: 0 !important;
                 padding: 0 !important;
                 background: white !important;
+                width: 100% !important;
+                height: 100% !important;
               }
 
               .bill-preview-container {
                 position: relative;
                 width: 100%;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: block !important;
               }
 
               .bill-copy {
@@ -375,6 +397,8 @@ export default function ViewBillPage() {
                 page-break-inside: avoid;
                 break-inside: avoid;
                 background: white !important;
+                display: block !important;
+                position: relative;
               }
 
               .bill-copy:last-of-type {
@@ -413,6 +437,7 @@ export default function ViewBillPage() {
 
               .bill-copy table {
                 min-width: 100% !important;
+                width: 100% !important;
               }
 
               .bill-copy > div:has(> div > .space-y-2) {
