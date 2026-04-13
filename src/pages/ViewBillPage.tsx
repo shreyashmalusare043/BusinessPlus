@@ -301,23 +301,60 @@ export default function ViewBillPage() {
 
             @media screen and (max-width: 767px) {
               .bill-preview-container {
-                overflow-x: auto;
+                overflow-x: hidden;
                 width: 100%;
               }
 
               .bill-copy {
-                transform: none !important;
-                width: auto !important;
-                min-width: 0 !important;
-                transform: scale(0.6);
-                transform-origin: top center;
+                transform-origin: top left;
+                transform: scale(0.36);
+                width: 210mm !important;
+                min-width: 210mm !important;
                 margin-bottom: 1.5rem !important;
                 padding: 20px !important;
+              }
+
+              .bill-copy * {
+                max-width: none !important;
+              }
+
+              .bill-copy > div:first-child {
+                flex-direction: row !important;
+                align-items: flex-start !important;
+                justify-content: space-between !important;
+              }
+
+              .bill-copy > div:first-child > div:last-child {
+                text-align: right !important;
+                width: auto !important;
+              }
+
+              .bill-copy h1 {
+                font-size: 1.875rem !important;
+              }
+
+              .bill-copy h2 {
+                font-size: 2.25rem !important;
+              }
+
+              .bill-copy img {
+                height: 5rem !important;
+                width: 5rem !important;
+              }
+
+              .bill-copy .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 2rem !important;
               }
 
               .bill-copy table {
                 width: 100% !important;
                 font-size: 0.875rem !important;
+                min-width: 100% !important;
+              }
+
+              .bill-copy > div > div.w-full {
+                width: auto !important;
               }
             }
 
