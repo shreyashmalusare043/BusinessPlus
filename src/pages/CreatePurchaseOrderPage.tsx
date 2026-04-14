@@ -267,10 +267,10 @@ export default function CreatePurchaseOrderPage() {
                     Select Supplier
                   </label>
                   <Select value={selectedSupplierId} onValueChange={handleSupplierSelect}>
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="mt-2 w-full">
                       <SelectValue placeholder="Select a supplier or add new" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="w-full">
                       {suppliers.map((supplier) => (
                         <SelectItem key={supplier.id} value={supplier.id}>
                           {supplier.company_name}
@@ -455,7 +455,7 @@ export default function CreatePurchaseOrderPage() {
                           )}
                         />
                         
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <FormField
                             control={form.control}
                             name={`items.${index}.quantity`}
@@ -497,7 +497,7 @@ export default function CreatePurchaseOrderPage() {
                           />
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <FormField
                             control={form.control}
                             name={`items.${index}.cgst_rate`}

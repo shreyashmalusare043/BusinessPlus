@@ -164,10 +164,10 @@ export default function PurchaseOrderListPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-6 px-4 md:px-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <Skeleton className="h-9 w-48 bg-muted" />
-          <Skeleton className="h-10 w-48 bg-muted" />
+          <Skeleton className="h-10 w-full sm:w-48 bg-muted" />
         </div>
         <Card>
           <CardHeader>
@@ -186,13 +186,13 @@ export default function PurchaseOrderListPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Purchase Orders</h1>
-        <div className="flex gap-2">
+    <div className="space-y-6 px-4 md:px-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">Purchase Orders</h1>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="w-full sm:w-auto">
                 <Download className="mr-2 h-4 w-4" />
                 Export POs
               </Button>
@@ -229,7 +229,7 @@ export default function PurchaseOrderListPage() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button onClick={() => navigate('/purchase-orders/create')}>
+          <Button onClick={() => navigate('/purchase-orders/create')} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Create Purchase Order
           </Button>
@@ -244,39 +244,43 @@ export default function PurchaseOrderListPage() {
           {pos.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">No purchase orders created yet</p>
-              <Button onClick={() => navigate('/purchase-orders/create')}>
+              <Button onClick={() => navigate('/purchase-orders/create')} className="w-full sm:w-auto">
                 Create Your First Purchase Order
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>PO No</TableHead>
-                  <TableHead>Invoice No</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Supplier Name</TableHead>
-                  <TableHead className="text-right">Total Amount</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pos.map((po) => (
-                  <TableRow key={po.id}>
-                    <TableCell className="font-medium">{po.po_no}</TableCell>
-                    <TableCell>{po.invoice_no || '-'}</TableCell>
-                    <TableCell>{new Date(po.po_date).toLocaleDateString()}</TableCell>
-                    <TableCell>{po.supplier_name}</TableCell>
-                    <TableCell className="text-right">₹{po.grand_total.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/purchase-orders/${po.id}`)}>
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <div className="inline-block min-w-full align-middle">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[100px]">PO No</TableHead>
+                      <TableHead className="min-w-[100px]">Invoice No</TableHead>
+                      <TableHead className="min-w-[100px]">Date</TableHead>
+                      <TableHead className="min-w-[150px]">Supplier Name</TableHead>
+                      <TableHead className="text-right min-w-[120px]">Total Amount</TableHead>
+                      <TableHead className="text-right min-w-[100px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pos.map((po) => (
+                      <TableRow key={po.id}>
+                        <TableCell className="font-medium">{po.po_no}</TableCell>
+                        <TableCell>{po.invoice_no || '-'}</TableCell>
+                        <TableCell>{new Date(po.po_date).toLocaleDateString()}</TableCell>
+                        <TableCell>{po.supplier_name}</TableCell>
+                        <TableCell className="text-right">₹{po.grand_total.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm" onClick={() => navigate(`/purchase-orders/${po.id}`)}>
+                            View
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
