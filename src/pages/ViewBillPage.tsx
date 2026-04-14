@@ -401,7 +401,7 @@ console.log('PDF generated successfully');
                 transform: scale(0.35);
                 width: 230mm !important;
                 min-width: 210mm !important;
-                margin-bottom: -400 !important;
+                margin-bottom: -550px !important;
                 padding: 20px !important;
               }
               
