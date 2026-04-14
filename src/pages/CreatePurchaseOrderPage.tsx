@@ -154,7 +154,7 @@ export default function CreatePurchaseOrderPage() {
 
       {/* Add New Supplier Dialog - Outside main form */}
       <Dialog open={showNewSupplierDialog} onOpenChange={setShowNewSupplierDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Supplier</DialogTitle>
             <DialogDescription>Enter supplier details to add them to your list</DialogDescription>
@@ -201,7 +201,7 @@ export default function CreatePurchaseOrderPage() {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={newSupplierForm.control}
                   name="contact_person"
@@ -242,11 +242,11 @@ export default function CreatePurchaseOrderPage() {
                   </FormItem>
                 )}
               />
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setShowNewSupplierDialog(false)}>
+              <div className="flex flex-col sm:flex-row justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setShowNewSupplierDialog(false)} className="w-full sm:w-auto">
                   Cancel
                 </Button>
-                <Button type="submit">Add Supplier</Button>
+                <Button type="submit" className="w-full sm:w-auto">Add Supplier</Button>
               </div>
             </form>
           </Form>
@@ -285,7 +285,7 @@ export default function CreatePurchaseOrderPage() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="supplier_name"
@@ -317,7 +317,7 @@ export default function CreatePurchaseOrderPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="invoice_no"
@@ -347,7 +347,7 @@ export default function CreatePurchaseOrderPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="supplier_gst_number"
@@ -380,7 +380,7 @@ export default function CreatePurchaseOrderPage() {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <CardTitle>Line Items</CardTitle>
               <Button
                 type="button"
@@ -396,13 +396,161 @@ export default function CreatePurchaseOrderPage() {
                     sgst_rate: 9,
                   })
                 }
+                className="w-full sm:w-auto"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Item
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              {/* Mobile: Card-based layout */}
+              <div className="block md:hidden space-y-4">
+                {fields.map((field, index) => {
+                  const item = form.watch(`items.${index}`);
+                  const lineTotal = calculateLineTotal(item);
+
+                  return (
+                    <Card key={field.id} className="border-2">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-bold text-muted-foreground">Item #{index + 1}</span>
+                          {fields.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => remove(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                        
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.item_name`}
+                          rules={{ required: 'Required' }}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Item Name *</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Item name" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.hsn_code`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>HSN Code</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="HSN" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.quantity`}
+                            rules={{ required: 'Required', min: { value: 0.01, message: 'Min 0.01' } }}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Quantity *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type="number"
+                                    step="0.01"
+                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.unit_price`}
+                            rules={{ required: 'Required', min: { value: 0, message: 'Min 0' } }}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Unit Price *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type="number"
+                                    step="0.01"
+                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.cgst_rate`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>CGST %</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type="number"
+                                    step="0.01"
+                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.sgst_rate`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>SGST %</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type="number"
+                                    step="0.01"
+                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <div className="pt-2 border-t">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-semibold">Line Total:</span>
+                            <span className="text-lg font-bold text-primary">₹{lineTotal.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Desktop: Table layout */}
+              <div className="hidden md:block overflow-x-auto">
                 <div className="inline-block min-w-full align-middle">
                   <Table>
                     <TableHeader>
