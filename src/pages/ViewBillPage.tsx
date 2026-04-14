@@ -12,7 +12,7 @@ import html2pdf from 'html2pdf.js';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
-  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid',breakInside: 'avoid' , marginBottom: '2rem', padding: '20px' }}>
+  <div className="bill-copy bg-white" style={{ pageBreakAfter: 'always', pageBreakInside: 'avoid', breakInside: 'avoid', marginBottom: '2rem', padding: '20px' }}>
     {/* Header Section */}
     <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-8 pb-4 md:pb-6 border-b-2 border-gray-200 gap-4">
       {/* Company Info */}
@@ -25,7 +25,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
           <div className="text-xs md:text-sm text-gray-600 space-y-0.5">
             <p>{company.address}</p>
             <p style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}> Phone: {company.contact_phone || 'N/A'} | Email: {company.contact_email || 'N/A'}
-</p>
+            </p>
             {company.website && <p className="break-words">Website: {company.website}</p>}
             <p className="font-semibold text-gray-800 mt-1">GSTIN: {company.gst_number}</p>
           </div>
@@ -35,15 +35,15 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
       {/* Invoice Title & Copy Type */}
       <div className="text-left md:text-right w-full md:w-auto">
         <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">INVOICE</h2>
-        <span 
-  className="inline-block text-xs font-semibold px-3 py-1 uppercase tracking-wide"
-  style={{
-  backgroundColor: '#111827',
-  color: '#ffffff',
-  WebkitPrintColorAdjust: 'exact',
-  printColorAdjust: 'exact'
-}}
->
+        <span
+          className="inline-block text-xs font-semibold px-3 py-1 uppercase tracking-wide"
+          style={{
+            backgroundColor: '#111827',
+            color: '#ffffff',
+            WebkitPrintColorAdjust: 'exact',
+            printColorAdjust: 'exact'
+          }}
+        >
           {copyType}
         </span>
       </div>
@@ -130,15 +130,15 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
             <span className="text-gray-600">SGST (9%)</span>
             <span className="font-medium text-gray-900">₹{bill.total_sgst.toFixed(2)}</span>
           </div>
-          <div 
-  className="flex justify-between py-3 px-4 mt-2"
-  style={{
-  backgroundColor: '#f97316',
-  color: '#ffffff',
-  WebkitPrintColorAdjust: 'exact',
-  printColorAdjust: 'exact'
-}}
->
+          <div
+            className="flex justify-between py-3 px-4 mt-2"
+            style={{
+              backgroundColor: '#f97316',
+              color: '#ffffff',
+              WebkitPrintColorAdjust: 'exact',
+              printColorAdjust: 'exact'
+            }}
+          >
             <span className="font-bold text-sm md:text-base">Total Amount</span>
             <span className="font-bold text-lg md:text-xl">₹{bill.grand_total.toFixed(2)}</span>
           </div>
@@ -238,20 +238,20 @@ export default function ViewBillPage() {
   });
 
   const handleDownloadPDF = async () => {
-  if (!printRef.current || !bill) return;
+    if (!printRef.current || !bill) return;
 
-  const element = printRef.current;
+    const element = printRef.current;
 
-  const copies = element.querySelectorAll('.bill-copy');
+    const copies = element.querySelectorAll('.bill-copy');
 
-  copies.forEach((copy: any) => {
-    copy.style.transform = 'none';
-    copy.style.width = '210mm';
-    copy.style.minWidth = '210mm';
-  });
+    copies.forEach((copy: any) => {
+      copy.style.transform = 'none';
+      copy.style.width = '210mm';
+      copy.style.minWidth = '210mm';
+    });
 
-  // 🔥 WAIT for DOM update (IMPORTANT)
-  await new Promise((res) => setTimeout(res, 500));
+    // 🔥 WAIT for DOM update (IMPORTANT)
+    await new Promise((res) => setTimeout(res, 500));
 
     try {
       const element = printRef.current;
@@ -263,9 +263,9 @@ export default function ViewBillPage() {
       // Temporarily remove mobile scaling for PDF generation
       const billCopies = element.querySelectorAll('.bill-copy');
       console.log('Found bill copies:', billCopies.length);
-      
-      const originalStyles: Array<{transform: string; width: string; margin: string; minWidth: string}> = [];
-      
+
+      const originalStyles: Array<{ transform: string; width: string; margin: string; minWidth: string }> = [];
+
       billCopies.forEach((copy, index) => {
         const htmlCopy = copy as HTMLElement;
         originalStyles[index] = {
@@ -274,9 +274,9 @@ export default function ViewBillPage() {
           margin: htmlCopy.style.marginBottom,
           minWidth: htmlCopy.style.minWidth
         };
-        
+
         // Remove all scaling and force full size
-      
+
         htmlCopy.style.width = '210mm';
         htmlCopy.style.minWidth = '210mm';
         htmlCopy.style.maxWidth = '210mm';
@@ -287,15 +287,15 @@ export default function ViewBillPage() {
         margin: [10, 10, 10, 10] as [number, number, number, number],
         filename: filename,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { 
+        html2canvas: {
           scale: 2,
           useCORS: true,
           logging: true,
           letterRendering: true
         },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
           orientation: 'portrait' as const
         },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
@@ -303,16 +303,16 @@ export default function ViewBillPage() {
 
       console.log('Generating PDF with options:', opt);
 
-const firstCopy = element.querySelector('.bill-copy') as HTMLElement;
+      const firstCopy = element.querySelector('.bill-copy') as HTMLElement;
 
-if (!firstCopy) {
-  console.error('No bill copy found');
-  return;
-}
+      if (!firstCopy) {
+        console.error('No bill copy found');
+        return;
+      }
 
-await html2pdf().set(opt).from(firstCopy).save();
+      await html2pdf().set(opt).from(firstCopy).save();
 
-console.log('PDF generated successfully');
+      console.log('PDF generated successfully');
 
       // Restore mobile scaling
       billCopies.forEach((copy, index) => {
@@ -322,7 +322,7 @@ console.log('PDF generated successfully');
         htmlCopy.style.marginBottom = originalStyles[index].margin;
         htmlCopy.style.minWidth = originalStyles[index].minWidth;
       });
-      
+
       console.log('Mobile scaling restored');
     } catch (error) {
       console.error('Failed to generate PDF:', error);
@@ -365,7 +365,7 @@ console.log('PDF generated successfully');
           Back to Bills
         </Button>
         <div className="flex flex-col sm:flex-row gap-2">
-          
+
           <Button onClick={handlePrint} className="w-full sm:w-auto">
             <Printer className="h-4 w-4 mr-2" />
             Print Bill
@@ -385,19 +385,21 @@ console.log('PDF generated successfully');
 }
 
             @media screen and (max-width: 767px) {
-              .bill-preview-container {
-                overflow: hidden;
-                width: 100%;
-              }
-              
-              .bill-copy {
-                transform-origin: top left;
-                transform: scale(0.35);
-                width: 230mm !important;
-                min-width: 210mm !important;
-                margin-bottom: 20px !important;
-                padding: 20px !important;
-              }
+  .bill-preview-container {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+  }
+
+  .bill-copy {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    zoom: 0.38;
+    transform: none !important;
+    margin-bottom: 20px !important;
+    padding: 20px !important;
+  }
+}
               
               /* Force desktop layout - override all responsive classes */
               .bill-copy * {
@@ -520,14 +522,14 @@ console.log('PDF generated successfully');
             }
           `}
         </style>
-        
-        <div ref={printRef} className="bg-white p-2 md:p-4 bill-preview-container">
-  <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
-  <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
-  <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
 
-  {showWatermark && <Watermark type="bill" />}
-</div>
+        <div ref={printRef} className="bg-white p-2 md:p-4 bill-preview-container">
+          <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
+          <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
+          <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
+
+          {showWatermark && <Watermark type="bill" />}
+        </div>
       </div>
     </div>
   );
