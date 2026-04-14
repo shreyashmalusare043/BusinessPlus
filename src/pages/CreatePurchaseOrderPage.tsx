@@ -154,7 +154,7 @@ export default function CreatePurchaseOrderPage() {
 
       {/* Add New Supplier Dialog - Outside main form */}
       <Dialog open={showNewSupplierDialog} onOpenChange={setShowNewSupplierDialog}>
-        <DialogContent className="max-w-2xl w-full">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add New Supplier</DialogTitle>
             <DialogDescription>Enter supplier details to add them to your list</DialogDescription>
@@ -267,7 +267,7 @@ export default function CreatePurchaseOrderPage() {
                     Select Supplier
                   </label>
                   <Select value={selectedSupplierId} onValueChange={handleSupplierSelect}>
-                    <SelectTrigger className="mt-2 w-full">
+                    <SelectTrigger className="mt-2">
                       <SelectValue placeholder="Select a supplier or add new" />
                     </SelectTrigger>
                     <SelectContent>
@@ -403,8 +403,8 @@ export default function CreatePurchaseOrderPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-                <div className="inline-block min-w-full w-full align-middle">
-                  <Table className="w-full">
+                <div className="inline-block min-w-full align-middle">
+                  <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="min-w-[150px]">Item Name</TableHead>
