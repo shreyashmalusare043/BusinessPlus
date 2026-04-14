@@ -401,7 +401,7 @@ console.log('PDF generated successfully');
                 transform: scale(0.35);
                 width: 230mm !important;
                 min-width: 210mm !important;
-                margin-bottom: 20px !important;
+                margin-bottom: -400 !important;
                 padding: 20px !important;
               }
               
@@ -473,6 +473,7 @@ console.log('PDF generated successfully');
     transform: none !important;
     width: 210mm !important;
     min-width: 210mm !important;
+     min-height: 297mm;
     margin: 0 auto !important;
     padding: 20px !important;
     background: white !important;
@@ -482,8 +483,8 @@ console.log('PDF generated successfully');
   }
 
   @page {
-    size: A4 portrait;
-    margin: 15mm;
+    size: A4 ;
+    margin: 10mm;
   }
 }
               
