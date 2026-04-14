@@ -473,7 +473,7 @@ console.log('PDF generated successfully');
     transform: none !important;
     width: 210mm !important;
     min-width: 210mm !important;
-     min-height: 297mm;
+    height: auto;
     margin: 0 auto !important;
     padding: 20px !important;
     background: white !important;
