@@ -395,7 +395,7 @@ console.log('PDF generated successfully');
                 transform: scale(0.35);
                 width: 230mm !important;
                 min-width: 210mm !important;
-                margin-bottom: -500px !important;
+                margin-bottom: 20px !important;
                 padding: 20px !important;
               }
               
@@ -441,7 +441,6 @@ console.log('PDF generated successfully');
             
             @media print {
   body * {
-     body * {
     visibility: hidden;
   }
 
@@ -450,15 +449,12 @@ console.log('PDF generated successfully');
   .watermark {
     visibility: visible !important;
   }
-}
 
-  
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      background: white !important;
-    }
-
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
 
   .bill-preview-container {
     position: absolute;
@@ -473,8 +469,10 @@ console.log('PDF generated successfully');
     min-width: 210mm !important;
     margin: 0 auto !important;
     padding: 20px !important;
-    page-break-after: always;
     background: white !important;
+    page-break-after: always;
+    box-shadow: none !important;
+    border: none !important;
   }
 
   @page {
@@ -523,24 +521,12 @@ console.log('PDF generated successfully');
           `}
         </style>
         
-        {/* Original Copy */}
-        <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
-        
-        {/* Duplicate Copy */}
-        <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
-        
-        {/* Triplicate Copy */}
-        <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
-        
-        {/* Watermark - Only show for free users */}
         <div ref={printRef} className="bg-white p-2 md:p-4 bill-preview-container">
-  
   <BillCopy bill={bill} company={company} copyType="ORIGINAL" />
   <BillCopy bill={bill} company={company} copyType="DUPLICATE" />
   <BillCopy bill={bill} company={company} copyType="TRIPLICATE" />
 
   {showWatermark && <Watermark type="bill" />}
-
 </div>
       </div>
     </div>
