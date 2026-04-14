@@ -384,20 +384,22 @@ console.log('PDF generated successfully');
   print-color-adjust: exact !important;
 }
 
-            @media screen and (max-width: 767px) {
-              .bill-preview-container {
-                overflow: hidden;
-                width: 100%;
-              }
-              
-              .bill-copy {
-                transform-origin: top left;
-                transform: scale(0.35);
-                width: 230mm !important;
-                min-width: 210mm !important;
-                margin-bottom: 20px !important;
-                padding: 20px !important;
-              }
+           @media screen and (max-width: 767px) {
+  .bill-preview-container {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+  }
+
+  .bill-copy {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    zoom: 0.38;
+    transform: none !important;
+    margin-bottom: 20px !important;
+    padding: 20px !important;
+  }
+}
               
               /* Force desktop layout - override all responsive classes */
               .bill-copy * {
