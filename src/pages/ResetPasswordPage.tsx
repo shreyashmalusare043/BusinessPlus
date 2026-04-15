@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { Loader2, Lock, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/db/supabase';
 
 interface ResetPasswordForm {
   password: string;
@@ -17,8 +18,34 @@ interface ResetPasswordForm {
 export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [hasValidSession, setHasValidSession] = useState(false);
+  const [sessionChecking, setSessionChecking] = useState(true);
   const navigate = useNavigate();
   const { updatePassword } = useAuth();
+
+  useEffect(() => {
+    // Check if user has a valid session (recovery session from reset link)
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          toast.error('Invalid or expired reset link. Please request a new one.');
+          navigate('/forgot-password', { replace: true });
+          return;
+        }
+        
+        setHasValidSession(true);
+      } catch (error) {
+        console.error('Session check error:', error);
+        navigate('/forgot-password', { replace: true });
+      } finally {
+        setSessionChecking(false);
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
 
   const form = useForm<ResetPasswordForm>({
     defaultValues: {
@@ -58,6 +85,52 @@ export default function ResetPasswordPage() {
     }
   };
 
+  // Loading state - checking if reset link is valid
+  if (sessionChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Verifying reset link...</h1>
+          <p className="text-muted-foreground">Please wait</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Invalid or expired reset link
+  if (!hasValidSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Link Expired</CardTitle>
+            <CardDescription className="text-center">
+              Your password reset link has expired
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted rounded-md p-4">
+              <p className="text-sm text-muted-foreground">
+                Please request a new password reset link.
+              </p>
+            </div>
+
+            <Button
+              asChild
+              className="w-full"
+            >
+              <Link to="/forgot-password">
+                Request New Link
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Success state
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
@@ -101,6 +174,7 @@ export default function ResetPasswordPage() {
     );
   }
 
+  // Reset password form
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
       <Card className="w-full max-w-md shadow-lg">
