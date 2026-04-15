@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 
 /**
  * This page handles the OAuth/confirmation callback from Supabase
- * It's called when user clicks the email confirmation link
+ * Handles both email confirmation and password reset callbacks
  */
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -15,7 +15,23 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     if (loading) return;
 
-    // Check if user is authenticated with confirmed email
+    // Check URL hash for callback type
+    const hash = window.location.hash;
+    const isPasswordReset = hash.includes('type=recovery') || hash.includes('type=password_recovery');
+
+    if (isPasswordReset) {
+      // Handle password reset callback
+      if (user) {
+        toast.success('Password reset link verified! Please set your new password.');
+        navigate('/reset-password', { replace: true });
+      } else {
+        toast.error('Invalid password reset link. Please request a new one.');
+        navigate('/forgot-password', { replace: true });
+      }
+      return;
+    }
+
+    // Handle email confirmation callback
     if (user && user.email_confirmed_at) {
       toast.success('Email verified successfully!');
       navigate('/dashboard', { replace: true });
@@ -32,8 +48,8 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted">
       <div className="text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-        <h1 className="text-2xl font-bold mb-2">Processing your confirmation...</h1>
-        <p className="text-muted-foreground">Verifying your email, please wait</p>
+        <h1 className="text-2xl font-bold mb-2">Processing your request...</h1>
+        <p className="text-muted-foreground">Please wait</p>
       </div>
     </div>
   );

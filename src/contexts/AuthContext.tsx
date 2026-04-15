@@ -125,17 +125,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPasswordForEmail = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password',
-      });
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://business-plus.in/auth/confirm'
+    });
 
-      if (error) throw error;
-      return { error: null };
-    } catch (error) {
-      return { error: error as Error };
-    }
-  };
+    if (error) throw error;
+
+    return { error: null };
+  } catch (error) {
+    return { error: error as Error };
+  }
+};
 
   const updatePassword = async (newPassword: string) => {
     try {
