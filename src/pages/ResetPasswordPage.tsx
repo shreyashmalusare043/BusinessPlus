@@ -24,15 +24,40 @@ export default function ResetPasswordPage() {
   const { updatePassword } = useAuth();
 
   useEffect(() => {
-    // Check if user has a valid session (recovery session from reset link)
+    // Listen for auth state changes to get the recovery session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        // Wait a moment for session to be fully restored
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (session) {
+          setHasValidSession(true);
+          setSessionChecking(false);
+        } else {
+          toast.error('Invalid or expired reset link. Please request a new one.');
+          navigate('/forgot-password', { replace: true });
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+        navigate('/forgot-password', { replace: true });
+      }
+    });
+
+    // Also check immediately in case session is already restored
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
-          toast.error('Invalid or expired reset link. Please request a new one.');
-          navigate('/forgot-password', { replace: true });
-          return;
+          // Wait a moment and try again, as Supabase might still be restoring from URL
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const { data: { session: session2 } } = await supabase.auth.getSession();
+          
+          if (!session2) {
+            toast.error('Invalid or expired reset link. Please request a new one.');
+            navigate('/forgot-password', { replace: true });
+            return;
+          }
         }
         
         setHasValidSession(true);
@@ -45,6 +70,8 @@ export default function ResetPasswordPage() {
     };
 
     checkSession();
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const form = useForm<ResetPasswordForm>({
