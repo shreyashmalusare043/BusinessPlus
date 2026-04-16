@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             username,
           },
-          emailRedirectTo: window.location.origin + '/auth/callback',
+          emailRedirectTo: window.location.origin + '/auth/reset-password',
         },
       });
 
