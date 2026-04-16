@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
         
         if (!session) {
           // Wait a moment and try again, as Supabase might still be restoring from URL
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 1000));
           const { data: { session: session2 } } = await supabase.auth.getSession();
           
           if (!session2) {
