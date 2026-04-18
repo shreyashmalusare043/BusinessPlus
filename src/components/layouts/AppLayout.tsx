@@ -73,7 +73,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-full flex-col">
       <div className="flex h-14 sm:h-16 items-center border-b px-4 sm:px-6 gap-2 sm:gap-3">
         <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 ">
-          <img src="public/images/logo/businesspluslogo.png" alt="" />
+          <img src="/images/logo/businesspluslogo.png" alt="BusinessPlus" />
         </div>
         <h1 className="text-base sm:text-lg font-bold text-sidebar-foreground truncate">BusinessPlus</h1>
       </div>
