@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             username,
           },
-          emailRedirectTo: window.location.origin + '/auth/callback',
+          emailRedirectTo: window.location.origin + '/login',
         },
       });
 
@@ -131,7 +131,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) throw error;
-
       return { error: null };
     } catch (error) {
       return { error: error as Error };

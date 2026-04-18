@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import IntersectObserver from '@/components/common/IntersectObserver';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -15,16 +14,6 @@ const App: React.FC = () => {
       <ThemeProvider>
         <AuthProvider>
           <RouteGuard>
-            <Helmet>
-              <title>Business Plus | GST Billing & Inventory Management System</title>
-              <meta name="description" content="Business Plus" />
-              <meta name="keywords" content="Business Plus, Billing Software, GST Billing System, Inventory Management, HRSAC, Free Billing App India" />
-              
-              {/* सोशल मीडियासाठी ओजी टॅग्स */}
-              <meta property="og:title" content="Business Plus - Smart Billing Solution" />
-              <meta property="og:description" content="तुमच्या व्यवसायाचे बिलिंग आता करा अधिक सोपे. Business Plus सह." />
-              <meta property="og:type" content="website" />
-            </Helmet>
             <IntersectObserver />
             <Routes>
             {routes.map((route, index) => {
@@ -35,7 +24,6 @@ const App: React.FC = () => {
                 '/signup',
                 '/company-setup',
                 '/verify-email',
-                '/auth/callback',
                 '/forgot-password',
                 '/forgot-email',
                 '/reset-password',
