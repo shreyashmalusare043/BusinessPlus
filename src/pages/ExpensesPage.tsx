@@ -17,6 +17,7 @@ import type { Expense, ExpenseForm } from '@/types';
 import { format } from 'date-fns';
 
 const EXPENSE_CATEGORIES = [
+  'Purchase Order',
   'Rent',
   'Utilities',
   'Salaries',

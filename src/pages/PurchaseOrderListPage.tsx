@@ -1,29 +1,34 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { getMyPurchaseOrders, getPurchaseOrdersByDateRange } from '@/db/api';
+import { getMyPurchaseOrders, getPurchaseOrdersByDateRange, getMySuppliers } from '@/db/api';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-import type { PurchaseOrder } from '@/types';
+import type { PurchaseOrder, Supplier } from '@/types';
 
 export default function PurchaseOrderListPage() {
   const [pos, setPOs] = useState<PurchaseOrder[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [exportLoading, setExportLoading] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSupplier, setSelectedSupplier] = useState<string>('all');
   const navigate = useNavigate();
 
   useEffect(() => {
     loadPOs();
+    loadSuppliers();
   }, []);
 
   const loadPOs = async () => {
@@ -35,6 +40,43 @@ export default function PurchaseOrderListPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadSuppliers = async () => {
+    try {
+      const data = await getMySuppliers();
+      setSuppliers(data);
+    } catch (error) {
+      console.error('Failed to load suppliers:', error);
+    }
+  };
+
+  // Filter and search purchase orders
+  const filteredPOs = useMemo(() => {
+    let filtered = pos;
+
+    // Filter by supplier
+    if (selectedSupplier !== 'all') {
+      filtered = filtered.filter(po => po.supplier_name === selectedSupplier);
+    }
+
+    // Search by PO number, invoice number, supplier name, or amount
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(po =>
+        po.po_no.toLowerCase().includes(query) ||
+        (po.invoice_no && po.invoice_no.toLowerCase().includes(query)) ||
+        po.supplier_name.toLowerCase().includes(query) ||
+        po.grand_total.toString().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [pos, selectedSupplier, searchQuery]);
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedSupplier('all');
   };
 
   const handleExport = async () => {
@@ -164,10 +206,13 @@ export default function PurchaseOrderListPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 px-4 md:px-0">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <Skeleton className="h-9 w-48 bg-muted" />
-          <Skeleton className="h-10 w-full sm:w-48 bg-muted" />
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <Skeleton className="h-8 sm:h-9 w-40 sm:w-48 bg-muted" />
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Skeleton className="h-9 sm:h-10 w-full sm:w-32 bg-muted" />
+            <Skeleton className="h-9 sm:h-10 w-full sm:w-40 bg-muted" />
+          </div>
         </div>
         <Card>
           <CardHeader>
@@ -186,41 +231,45 @@ export default function PurchaseOrderListPage() {
   }
 
   return (
-    <div className="space-y-6 px-4 md:px-0">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">Purchase Orders</h1>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Purchase Orders</h1>
+        <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
           <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full xs:w-auto">
                 <Download className="mr-2 h-4 w-4" />
-                Export POs
+                <span className="hidden xs:inline">Export POs</span>
+                <span className="xs:hidden">Export</span>
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-[95vw] sm:w-full max-w-md">
               <DialogHeader>
-                <DialogTitle>Export Purchase Orders</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-lg sm:text-xl">Export Purchase Orders</DialogTitle>
+                <DialogDescription className="text-sm">
                   Select a date range to export purchase orders for GST filing
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="start-date">From Date</Label>
+                  <Label htmlFor="start-date" className="text-sm">From Date</Label>
                   <Input
                     id="start-date"
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
+                    className="text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="end-date">To Date</Label>
+                  <Label htmlFor="end-date" className="text-sm">To Date</Label>
                   <Input
                     id="end-date"
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
+                    className="text-sm"
                   />
                 </div>
                 <Button onClick={handleExport} disabled={exportLoading} className="w-full">
@@ -229,57 +278,138 @@ export default function PurchaseOrderListPage() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button onClick={() => navigate('/purchase-orders/create')} className="w-full sm:w-auto">
+          <Button onClick={() => navigate('/purchase-orders/create')} className="w-full xs:w-auto">
             <Plus className="mr-2 h-4 w-4" />
-            Create Purchase Order
+            <span className="hidden xs:inline">Create Purchase Order</span>
+            <span className="xs:hidden">Create</span>
           </Button>
         </div>
       </div>
 
+      {/* Search and Filter Section */}
       <Card>
-        <CardHeader>
-          <CardTitle>All Purchase Orders</CardTitle>
+        <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+          <CardTitle className="text-lg sm:text-xl">Search & Filter</CardTitle>
         </CardHeader>
-        <CardContent>
-          {pos.length === 0 ? (
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            {/* Search Input */}
+            <div className="flex-1">
+              <Label htmlFor="search" className="text-xs sm:text-sm mb-2 block">Search Purchase Orders</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  type="text"
+                  placeholder="Search by PO no, invoice no, supplier, or amount..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Supplier Filter */}
+            <div className="flex-1 sm:max-w-xs">
+              <Label htmlFor="supplier-filter" className="text-xs sm:text-sm mb-2 block">Filter by Supplier</Label>
+              <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                <SelectTrigger id="supplier-filter" className="text-sm">
+                  <SelectValue placeholder="All Suppliers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Suppliers</SelectItem>
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.company_name}>
+                      {supplier.company_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(searchQuery || selectedSupplier !== 'all') && (
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearFilters}
+                  className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
+                >
+                  <X className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  Clear
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Results Count */}
+          {(searchQuery || selectedSupplier !== 'all') && (
+            <div className="mt-3 sm:mt-4">
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Showing {filteredPOs.length} of {pos.length} purchase orders
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Purchase Orders Table */}
+      <Card>
+        <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+          <CardTitle className="text-lg sm:text-xl">All Purchase Orders</CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+          {filteredPOs.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No purchase orders created yet</p>
-              <Button onClick={() => navigate('/purchase-orders/create')} className="w-full sm:w-auto">
-                Create Your First Purchase Order
-              </Button>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">
+                {pos.length === 0 ? 'No purchase orders created yet' : 'No purchase orders match your search criteria'}
+              </p>
+              {pos.length === 0 ? (
+                <Button onClick={() => navigate('/purchase-orders/create')} className="w-full sm:w-auto">
+                  Create Your First Purchase Order
+                </Button>
+              ) : (
+                <Button onClick={handleClearFilters} variant="outline" className="w-full sm:w-auto">
+                  Clear Filters
+                </Button>
+              )}
             </div>
           ) : (
-            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-              <div className="inline-block min-w-full align-middle">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[100px]">PO No</TableHead>
-                      <TableHead className="min-w-[100px]">Invoice No</TableHead>
-                      <TableHead className="min-w-[100px]">Date</TableHead>
-                      <TableHead className="min-w-[150px]">Supplier Name</TableHead>
-                      <TableHead className="text-right min-w-[120px]">Total Amount</TableHead>
-                      <TableHead className="text-right min-w-[100px]">Actions</TableHead>
+            <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">PO No</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Invoice No</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Date</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Supplier Name</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Total Amount</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPOs.map((po) => (
+                    <TableRow key={po.id}>
+                      <TableCell className="font-medium whitespace-nowrap text-xs sm:text-sm">{po.po_no}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs sm:text-sm">{po.invoice_no || '-'}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs sm:text-sm">{new Date(po.po_date).toLocaleDateString()}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs sm:text-sm">{po.supplier_name}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{po.grand_total.toFixed(2)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => navigate(`/purchase-orders/${po.id}`)}
+                          className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+                        >
+                          View
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pos.map((po) => (
-                      <TableRow key={po.id}>
-                        <TableCell className="font-medium">{po.po_no}</TableCell>
-                        <TableCell>{po.invoice_no || '-'}</TableCell>
-                        <TableCell>{new Date(po.po_date).toLocaleDateString()}</TableCell>
-                        <TableCell>{po.supplier_name}</TableCell>
-                        <TableCell className="text-right">₹{po.grand_total.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="outline" size="sm" onClick={() => navigate(`/purchase-orders/${po.id}`)}>
-                            View
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>

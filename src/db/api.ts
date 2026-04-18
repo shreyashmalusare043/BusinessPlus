@@ -14,7 +14,6 @@ import type {
   SupportTicket,
   DeliveryChallan,
   DeliveryChallanWithItems,
-  DeliveryChallanItem,
   DeliveryChallanForm,
   Subscription,
   SubscriptionWithUser,
@@ -547,6 +546,7 @@ export async function createPurchaseOrder(poData: PurchaseOrderForm): Promise<Pu
       supplier_contact: poData.supplier_contact || null,
       supplier_address: poData.supplier_address || null,
       supplier_gst_number: poData.supplier_gst_number || null,
+      classification: poData.classification,
       subtotal,
       total_cgst: totalCgst,
       total_sgst: totalSgst,
@@ -567,9 +567,32 @@ export async function createPurchaseOrder(poData: PurchaseOrderForm): Promise<Pu
 
   if (itemsError) throw itemsError;
 
-  // Update stock quantities (increment)
-  for (const item of poData.items) {
-    await updateStockQuantity(item.item_name, item.hsn_code, item.quantity);
+  // Handle classification-based logic
+  if (poData.classification === 'stock') {
+    // Update stock quantities (increment) only for stock classification
+    for (const item of poData.items) {
+      await updateStockQuantity(item.item_name, item.hsn_code, item.quantity);
+    }
+  } else if (poData.classification === 'expense') {
+    // Create expense entries for expense classification
+    const expenseEntries = poData.items.map((item) => {
+      const subtotal = item.quantity * item.unit_price;
+      const cgstAmount = (subtotal * item.cgst_rate) / 100;
+      const sgstAmount = (subtotal * item.sgst_rate) / 100;
+      const totalAmount = subtotal + cgstAmount + sgstAmount;
+      
+      return {
+        user_id: userId,
+        expense_name: item.item_name,
+        category: 'Purchase Order',
+        amount: totalAmount,
+        expense_date: poData.po_date,
+        description: `PO: ${poNo} - ${item.item_name} (Qty: ${item.quantity}, HSN: ${item.hsn_code || 'N/A'})`,
+      };
+    });
+
+    const { error: expenseError } = await supabase.from('expenses').insert(expenseEntries);
+    if (expenseError) throw expenseError;
   }
 
   return po;

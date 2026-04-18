@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,25 +8,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { getMyBills, updateBillPaymentStatus, getBillsByDateRange } from '@/db/api';
+import { getMyBills, updateBillPaymentStatus, getBillsByDateRange, getMyCustomers } from '@/db/api';
 import { supabase } from '@/db/supabase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-import type { Bill } from '@/types';
+import type { Bill, Customer } from '@/types';
 
 export default function BillListPage() {
   const [bills, setBills] = useState<Bill[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [exportLoading, setExportLoading] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const navigate = useNavigate();
 
   useEffect(() => {
     loadBills();
+    loadCustomers();
   }, []);
 
   const loadBills = async () => {
@@ -38,6 +42,42 @@ export default function BillListPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadCustomers = async () => {
+    try {
+      const data = await getMyCustomers();
+      setCustomers(data);
+    } catch (error) {
+      console.error('Failed to load customers:', error);
+    }
+  };
+
+  // Filter and search bills
+  const filteredBills = useMemo(() => {
+    let filtered = bills;
+
+    // Filter by company
+    if (selectedCompany !== 'all') {
+      filtered = filtered.filter(bill => bill.customer_name === selectedCompany);
+    }
+
+    // Search by bill number, customer name, or amount
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(bill =>
+        bill.bill_no.toLowerCase().includes(query) ||
+        bill.customer_name.toLowerCase().includes(query) ||
+        bill.grand_total.toString().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [bills, selectedCompany, searchQuery]);
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedCompany('all');
   };
 
   const handlePaymentStatusChange = async (billId: string, status: 'pending' | 'paid' | 'unpaid') => {
@@ -198,10 +238,13 @@ export default function BillListPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-9 w-32 bg-muted" />
-          <Skeleton className="h-10 w-32 bg-muted" />
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <Skeleton className="h-8 sm:h-9 w-32 sm:w-40 bg-muted" />
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Skeleton className="h-9 sm:h-10 w-full sm:w-32 bg-muted" />
+            <Skeleton className="h-9 sm:h-10 w-full sm:w-32 bg-muted" />
+          </div>
         </div>
         <Card>
           <CardHeader>
@@ -220,41 +263,45 @@ export default function BillListPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Bills</h1>
-        <div className="flex gap-2">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Bills</h1>
+        <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
           <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="w-full xs:w-auto">
                 <Download className="mr-2 h-4 w-4" />
-                Export Bills
+                <span className="hidden xs:inline">Export Bills</span>
+                <span className="xs:hidden">Export</span>
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-[95vw] sm:w-full max-w-md">
               <DialogHeader>
-                <DialogTitle>Export Bills</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-lg sm:text-xl">Export Bills</DialogTitle>
+                <DialogDescription className="text-sm">
                   Select a date range to export bills for GST filing
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="start-date">From Date</Label>
+                  <Label htmlFor="start-date" className="text-sm">From Date</Label>
                   <Input
                     id="start-date"
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
+                    className="text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="end-date">To Date</Label>
+                  <Label htmlFor="end-date" className="text-sm">To Date</Label>
                   <Input
                     id="end-date"
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
+                    className="text-sm"
                   />
                 </div>
                 <Button onClick={handleExport} disabled={exportLoading} className="w-full">
@@ -263,90 +310,177 @@ export default function BillListPage() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button onClick={() => navigate('/bills/create')}>
+          <Button onClick={() => navigate('/bills/create')} className="w-full xs:w-auto">
             <Plus className="mr-2 h-4 w-4" />
-            Create Bill
+            <span className="hidden xs:inline">Create Bill</span>
+            <span className="xs:hidden">Create</span>
           </Button>
         </div>
       </div>
 
+      {/* Search and Filter Section */}
       <Card>
-        <CardHeader>
-          <CardTitle>All Bills</CardTitle>
+        <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+          <CardTitle className="text-lg sm:text-xl">Search & Filter</CardTitle>
         </CardHeader>
-        <CardContent>
-          {bills.length === 0 ? (
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            {/* Search Input */}
+            <div className="flex-1">
+              <Label htmlFor="search" className="text-xs sm:text-sm mb-2 block">Search Bills</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  type="text"
+                  placeholder="Search by bill no, customer, or amount..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Company Filter */}
+            <div className="flex-1 sm:max-w-xs">
+              <Label htmlFor="company-filter" className="text-xs sm:text-sm mb-2 block">Filter by Company</Label>
+              <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                <SelectTrigger id="company-filter" className="text-sm">
+                  <SelectValue placeholder="All Companies" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Companies</SelectItem>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.company_name}>
+                      {customer.company_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(searchQuery || selectedCompany !== 'all') && (
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearFilters}
+                  className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
+                >
+                  <X className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  Clear
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Results Count */}
+          {(searchQuery || selectedCompany !== 'all') && (
+            <div className="mt-3 sm:mt-4">
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Showing {filteredBills.length} of {bills.length} bills
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Bills Table */}
+      <Card>
+        <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+          <CardTitle className="text-lg sm:text-xl">All Bills</CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+          {filteredBills.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No bills created yet</p>
-              <Button onClick={() => navigate('/bills/create')}>Create Your First Bill</Button>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">
+                {bills.length === 0 ? 'No bills created yet' : 'No bills match your search criteria'}
+              </p>
+              {bills.length === 0 ? (
+                <Button onClick={() => navigate('/bills/create')} className="w-full sm:w-auto">
+                  Create Your First Bill
+                </Button>
+              ) : (
+                <Button onClick={handleClearFilters} variant="outline" className="w-full sm:w-auto">
+                  Clear Filters
+                </Button>
+              )}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Bill No</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Customer Name</TableHead>
-                  <TableHead className="text-right">Total Amount</TableHead>
-                  <TableHead className="text-right">GST Amount</TableHead>
-                  <TableHead>Payment Status</TableHead>
-                  <TableHead>Payment Reminder</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bills.map((bill) => (
-                  <TableRow key={bill.id}>
-                    <TableCell className="font-medium">{bill.bill_no}</TableCell>
-                    <TableCell>{new Date(bill.bill_date).toLocaleDateString()}</TableCell>
-                    <TableCell>{bill.customer_name}</TableCell>
-                    <TableCell className="text-right">₹{bill.grand_total.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">₹{(bill.total_cgst + bill.total_sgst).toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Select
-                        value={bill.payment_status}
-                        onValueChange={(value) => handlePaymentStatusChange(bill.id, value as 'pending' | 'paid' | 'unpaid')}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">
-                            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                              Pending
-                            </Badge>
-                          </SelectItem>
-                          <SelectItem value="paid">
-                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                              Paid
-                            </Badge>
-                          </SelectItem>
-                          <SelectItem value="unpaid">
-                            <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
-                              Unpaid
-                            </Badge>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {bill.payment_reminder === 'none' ? 'None' : 
-                         bill.payment_reminder === '7_days' ? '7 Days' :
-                         bill.payment_reminder === '30_days' ? '30 Days' :
-                         bill.payment_reminder === '45_days' ? '45 Days' :
-                         bill.payment_reminder === '90_days' ? '90 Days' : 'None'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/bills/${bill.id}`)}>
-                        View
-                      </Button>
-                    </TableCell>
+            <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Bill No</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Date</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Customer Name</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Total Amount</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">GST Amount</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Payment Status</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Payment Reminder</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredBills.map((bill) => (
+                    <TableRow key={bill.id}>
+                      <TableCell className="font-medium whitespace-nowrap text-xs sm:text-sm">{bill.bill_no}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs sm:text-sm">{new Date(bill.bill_date).toLocaleDateString()}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs sm:text-sm">{bill.customer_name}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{bill.grand_total.toFixed(2)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{(bill.total_cgst + bill.total_sgst).toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Select
+                          value={bill.payment_status}
+                          onValueChange={(value) => handlePaymentStatusChange(bill.id, value as 'pending' | 'paid' | 'unpaid')}
+                        >
+                          <SelectTrigger className="w-28 sm:w-32 h-8 sm:h-10 text-xs sm:text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">
+                              <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300 text-xs">
+                                Pending
+                              </Badge>
+                            </SelectItem>
+                            <SelectItem value="paid">
+                              <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 text-xs">
+                                Paid
+                              </Badge>
+                            </SelectItem>
+                            <SelectItem value="unpaid">
+                              <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 text-xs">
+                                Unpaid
+                              </Badge>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                          {bill.payment_reminder === 'none' ? 'None' : 
+                           bill.payment_reminder === '7_days' ? '7 Days' :
+                           bill.payment_reminder === '30_days' ? '30 Days' :
+                           bill.payment_reminder === '45_days' ? '45 Days' :
+                           bill.payment_reminder === '90_days' ? '90 Days' : 'None'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => navigate(`/bills/${bill.id}`)}
+                          className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+                        >
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

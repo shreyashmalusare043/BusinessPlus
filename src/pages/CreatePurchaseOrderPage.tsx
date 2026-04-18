@@ -29,6 +29,7 @@ export default function CreatePurchaseOrderPage() {
       supplier_gst_number: '',
       invoice_no: '',
       po_date: new Date().toISOString().split('T')[0],
+      classification: 'expense',
       items: [
         {
           item_name: '',
@@ -267,10 +268,10 @@ export default function CreatePurchaseOrderPage() {
                     Select Supplier
                   </label>
                   <Select value={selectedSupplierId} onValueChange={handleSupplierSelect}>
-                    <SelectTrigger className="mt-2 w-full">
+                    <SelectTrigger className="mt-2">
                       <SelectValue placeholder="Select a supplier or add new" />
                     </SelectTrigger>
-                    <SelectContent className="w-full">
+                    <SelectContent>
                       {suppliers.map((supplier) => (
                         <SelectItem key={supplier.id} value={supplier.id}>
                           {supplier.company_name}
@@ -311,6 +312,29 @@ export default function CreatePurchaseOrderPage() {
                       <FormControl>
                         <Input {...field} type="date" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="classification"
+                  rules={{ required: 'Classification is required' }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Order Classification</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select classification" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="expense">Expense</SelectItem>
+                          <SelectItem value="stock">Stock</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -455,7 +479,7 @@ export default function CreatePurchaseOrderPage() {
                           )}
                         />
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                           <FormField
                             control={form.control}
                             name={`items.${index}.quantity`}
@@ -497,7 +521,7 @@ export default function CreatePurchaseOrderPage() {
                           />
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                           <FormField
                             control={form.control}
                             name={`items.${index}.cgst_rate`}

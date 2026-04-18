@@ -212,6 +212,7 @@ export interface PurchaseOrderForm {
   supplier_gst_number: string;
   invoice_no: string;
   po_date: string;
+  classification: 'expense' | 'stock';
   items: PurchaseOrderItemForm[];
 }
 
