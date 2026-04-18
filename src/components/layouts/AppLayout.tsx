@@ -71,15 +71,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center border-b px-6 gap-3">
-        <div className="flex items-center justify-center w-10 h-10 ">
-          <img src="/images/logo/businesspluslogo.png" alt="" />
+      <div className="flex h-14 sm:h-16 items-center border-b px-4 sm:px-6 gap-2 sm:gap-3">
+        <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-lg shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 sm:w-6 sm:h-6">
+            <path d="M9 3H4C3.44772 3 3 3.44772 3 4V9C3 9.55228 3.44772 10 4 10H9C9.55228 10 10 9.55228 10 9V4C10 3.44772 9.55228 3 9 3Z" fill="currentColor" className="text-primary-foreground"/>
+            <path d="M20 3H15C14.4477 3 14 3.44772 14 4V9C14 9.55228 14.4477 10 15 10H20C20.5523 10 21 9.55228 21 9V4C21 3.44772 20.5523 3 20 3Z" fill="currentColor" className="text-primary-foreground"/>
+            <path d="M9 14H4C3.44772 14 3 14.4477 3 15V20C3 20.5523 3.44772 21 4 21H9C9.55228 21 10 20.5523 10 20V15C10 14.4477 9.55228 14 9 14Z" fill="currentColor" className="text-primary-foreground"/>
+            <path d="M20 14H15C14.4477 14 14 14.4477 14 15V20C14 20.5523 14.4477 21 15 21H20C20.5523 21 21 20.5523 21 20V15C21 14.4477 20.5523 14 20 14Z" fill="currentColor" className="text-primary-foreground"/>
+          </svg>
         </div>
-        <h1 className="text-lg font-bold text-sidebar-foreground">BusinessPlus</h1>
+        <h1 className="text-base sm:text-lg font-bold text-sidebar-foreground truncate">BusinessPlus</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4">
-        <nav className="space-y-1 px-3">
+      <div className="flex-1 overflow-y-auto py-3 sm:py-4">
+        <nav className="space-y-1 px-2 sm:px-3">
           {filteredNavItems.map((item) => {
             const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             return (
@@ -87,36 +92,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 sm:gap-3 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                 }`}
               >
-                {item.icon}
-                {item.name}
+                <span className="shrink-0">{item.icon}</span>
+                <span className="truncate">{item.name}</span>
               </Link>
             );
           })}
         </nav>
       </div>
 
-      <div className="border-t p-4 space-y-2">
+      <div className="border-t p-3 sm:p-4 space-y-1 sm:space-y-2">
         <Button
           variant="ghost"
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+          className="w-full justify-start text-xs sm:text-sm text-sidebar-foreground hover:bg-sidebar-accent h-9 sm:h-10"
           onClick={handleCompanySettings}
         >
-          <Settings className="mr-2 h-4 w-4" />
-          Company Settings
+          <Settings className="mr-2 h-4 w-4 shrink-0" />
+          <span className="truncate">Company Settings</span>
         </Button>
         <Button
           variant="ghost"
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+          className="w-full justify-start text-xs sm:text-sm text-sidebar-foreground hover:bg-sidebar-accent h-9 sm:h-10"
           onClick={handleSignOut}
         >
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
+          <LogOut className="mr-2 h-4 w-4 shrink-0" />
+          <span className="truncate">Sign Out</span>
         </Button>
       </div>
     </div>
@@ -131,7 +136,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-64 p-0 bg-sidebar-background">
+        <SheetContent side="left" className="w-[280px] sm:w-64 p-0 bg-sidebar-background">
           <SidebarContent />
         </SheetContent>
       </Sheet>
@@ -139,10 +144,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6">
+        <header className="flex h-14 sm:h-16 items-center gap-2 sm:gap-4 border-b bg-card px-3 sm:px-4 lg:px-6">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden">
+              <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9 sm:h-10 sm:w-10">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -150,7 +155,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex-1" />
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Theme Toggle */}
             <ThemeToggle />
             
@@ -159,20 +164,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Button
                 variant="default"
                 size="sm"
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold shadow-lg"
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold shadow-lg text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                 onClick={() => navigate('/subscription')}
               >
-                <Crown className="mr-2 h-4 w-4" />
-                Upgrade to Premium
+                <Crown className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Upgrade to Premium</span>
+                <span className="xs:hidden">Upgrade</span>
               </Button>
             )}
             
             <div className="text-right hidden md:block">
-              <p className="text-sm font-medium">{profile?.username || 'User'}</p>
+              <p className="text-xs sm:text-sm font-medium truncate max-w-[120px]">{profile?.username || 'User'}</p>
               <p className="text-xs text-muted-foreground capitalize">{profile?.role || 'user'}</p>
             </div>
-            <Avatar>
-              <AvatarFallback className="bg-primary text-primary-foreground">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm">
                 {profile?.username?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
@@ -180,29 +186,29 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-background p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto bg-background p-3 sm:p-4 lg:p-6">
           {children}
         </main>
 
         {/* Footer */}
-        <footer className="border-t bg-background px-4 py-3">
+        <footer className="border-t bg-background px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-            <p>© 2026 BusinessPlus. All rights reserved.</p>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline">
+            <p className="text-center md:text-left">© 2026 BusinessPlus. All rights reserved.</p>
+            <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+              <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline whitespace-nowrap">
                 Privacy Policy
               </a>
-              <span>|</span>
-              <a href="/terms-conditions" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline">
+              <span className="hidden sm:inline">|</span>
+              <a href="/terms-conditions" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline whitespace-nowrap">
                 Terms & Conditions
               </a>
-              <span>|</span>
-              <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline">
+              <span className="hidden sm:inline">|</span>
+              <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline whitespace-nowrap">
                 Refund Policy
               </a>
-              <span>|</span>
-              <a href="/data-security-policy" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline">
-                Data Security Policy
+              <span className="hidden sm:inline">|</span>
+              <a href="/data-security-policy" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline whitespace-nowrap">
+                Data Security
               </a>
             </div>
           </div>
