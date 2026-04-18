@@ -166,14 +166,14 @@ export default function WorkTrackingPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-9 w-48 bg-muted" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="space-y-4 sm:space-y-6 px-4 md:px-0">
+        <Skeleton className="h-8 sm:h-9 w-40 sm:w-48 bg-muted" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-24 bg-muted" />
+            <Skeleton key={i} className="h-20 sm:h-24 bg-muted" />
           ))}
         </div>
-        <Skeleton className="h-96 bg-muted" />
+        <Skeleton className="h-80 sm:h-96 bg-muted" />
       </div>
     );
   }
@@ -189,12 +189,12 @@ export default function WorkTrackingPage() {
               Add Work Log
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
             <DialogHeader>
-              <DialogTitle>{editingLog ? 'Edit Work Log' : 'Add Work Log'}</DialogTitle>
+              <DialogTitle className="text-lg sm:text-xl">{editingLog ? 'Edit Work Log' : 'Add Work Log'}</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -412,20 +412,20 @@ export default function WorkTrackingPage() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes (Optional)</FormLabel>
+                      <FormLabel className="text-sm sm:text-base">Notes (Optional)</FormLabel>
                       <FormControl>
-                        <Textarea {...field} placeholder="Enter any additional notes" rows={3} />
+                        <Textarea {...field} placeholder="Enter any additional notes" rows={3} className="text-sm sm:text-base" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={handleDialogClose}>
+                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-2 pt-2">
+                  <Button type="button" variant="outline" onClick={handleDialogClose} className="w-full sm:w-auto">
                     Cancel
                   </Button>
-                  <Button type="submit">{editingLog ? 'Update' : 'Create'}</Button>
+                  <Button type="submit" className="w-full sm:w-auto">{editingLog ? 'Update' : 'Create'}</Button>
                 </div>
               </form>
             </Form>
@@ -435,46 +435,46 @@ export default function WorkTrackingPage() {
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Inhouse Hours (This Month)</CardDescription>
+            <CardHeader className="pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+              <CardDescription className="text-xs sm:text-sm">Inhouse Hours (This Month)</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
               <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />
-                <p className="text-2xl font-bold">{summary?.total_inhouse_hours ? summary.total_inhouse_hours.toFixed(1) : '0.0'}h</p>
+                <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                <p className="text-xl sm:text-2xl font-bold">{summary?.total_inhouse_hours ? summary.total_inhouse_hours.toFixed(1) : '0.0'}h</p>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Outsource Hours (This Month)</CardDescription>
+            <CardHeader className="pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+              <CardDescription className="text-xs sm:text-sm">Outsource Hours (This Month)</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
               <div className="flex items-center gap-2">
-                <Factory className="h-5 w-5 text-primary" />
-                <p className="text-2xl font-bold">{summary?.total_outsource_hours ? summary.total_outsource_hours.toFixed(1) : '0.0'}h</p>
+                <Factory className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                <p className="text-xl sm:text-2xl font-bold">{summary?.total_outsource_hours ? summary.total_outsource_hours.toFixed(1) : '0.0'}h</p>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Jobs (This Month)</CardDescription>
+            <CardHeader className="pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+              <CardDescription className="text-xs sm:text-sm">Total Jobs (This Month)</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{summary.total_jobs}</p>
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+              <p className="text-xl sm:text-2xl font-bold">{summary.total_jobs}</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Logs (This Month)</CardDescription>
+            <CardHeader className="pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+              <CardDescription className="text-xs sm:text-sm">Total Logs (This Month)</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{summary.total_logs}</p>
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+              <p className="text-xl sm:text-2xl font-bold">{summary.total_logs}</p>
             </CardContent>
           </Card>
         </div>
@@ -482,35 +482,35 @@ export default function WorkTrackingPage() {
 
       {/* Work Logs Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Work Logs</CardTitle>
+        <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+          <CardTitle className="text-lg sm:text-xl">Work Logs</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           {workLogs.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No work logs yet</p>
-              <Button onClick={() => setDialogOpen(true)}>Add Your First Work Log</Button>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">No work logs yet</p>
+              <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto">Add Your First Work Log</Button>
             </div>
           ) : (
-            <div className="rounded-md border overflow-x-auto">
+            <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="whitespace-nowrap">Date</TableHead>
-                    <TableHead className="whitespace-nowrap">Work Type</TableHead>
-                    <TableHead className="whitespace-nowrap">Company Name</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Machine Hours</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Jobs Completed</TableHead>
-                    <TableHead className="whitespace-nowrap">Notes</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Date</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Work Type</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Company Name</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Machine Hours</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Jobs Completed</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Notes</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {workLogs.map((log) => (
                     <TableRow key={log.id}>
-                      <TableCell className="font-medium whitespace-nowrap">{new Date(log.log_date).toLocaleDateString()}</TableCell>
+                      <TableCell className="font-medium whitespace-nowrap text-xs sm:text-sm">{new Date(log.log_date).toLocaleDateString()}</TableCell>
                       <TableCell className="whitespace-nowrap">
-                        <Badge variant={log.work_type === 'inhouse' ? 'default' : 'secondary'}>
+                        <Badge variant={log.work_type === 'inhouse' ? 'default' : 'secondary'} className="text-xs">
                           {log.work_type === 'inhouse' ? (
                             <Building2 className="mr-1 h-3 w-3" />
                           ) : (
@@ -519,17 +519,17 @@ export default function WorkTrackingPage() {
                           {log.work_type}
                         </Badge>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">{log.company_name}</TableCell>
-                      <TableCell className="text-right whitespace-nowrap">{log.machine_hours ? log.machine_hours.toFixed(1) : '0.0'}h / 24h</TableCell>
-                      <TableCell className="text-right whitespace-nowrap">{log.jobs_completed}</TableCell>
-                      <TableCell className="max-w-xs truncate whitespace-nowrap">{log.notes || '-'}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs sm:text-sm">{log.company_name}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">{log.machine_hours ? log.machine_hours.toFixed(1) : '0.0'}h / 24h</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">{log.jobs_completed}</TableCell>
+                      <TableCell className="max-w-xs truncate whitespace-nowrap text-xs sm:text-sm">{log.notes || '-'}</TableCell>
                       <TableCell className="text-right whitespace-nowrap">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleEdit(log)} title="Edit">
-                            <Pencil className="h-4 w-4" />
+                        <div className="flex justify-end gap-1 sm:gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(log)} title="Edit" className="h-8 w-8 p-0">
+                            <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDelete(log.id)} title="Delete">
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="outline" size="sm" onClick={() => handleDelete(log.id)} title="Delete" className="h-8 w-8 p-0">
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                       </TableCell>
