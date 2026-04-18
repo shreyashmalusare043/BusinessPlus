@@ -179,12 +179,12 @@ export default function WorkTrackingPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Work Tracking</h1>
+    <div className="space-y-4 md:space-y-6 px-4 md:px-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">Work Tracking</h1>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingLog(null)}>
+            <Button onClick={() => setEditingLog(null)} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Add Work Log
             </Button>
@@ -443,7 +443,7 @@ export default function WorkTrackingPage() {
             <CardContent>
               <div className="flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-primary" />
-                <p className="text-2xl font-bold">{summary.total_inhouse_hours.toFixed(1)}h</p>
+                <p className="text-2xl font-bold">{summary?.total_inhouse_hours ? summary.total_inhouse_hours.toFixed(1) : '0.0'}h</p>
               </div>
             </CardContent>
           </Card>
@@ -455,7 +455,7 @@ export default function WorkTrackingPage() {
             <CardContent>
               <div className="flex items-center gap-2">
                 <Factory className="h-5 w-5 text-primary" />
-                <p className="text-2xl font-bold">{summary.total_outsource_hours.toFixed(1)}h</p>
+                <p className="text-2xl font-bold">{summary?.total_outsource_hours ? summary.total_outsource_hours.toFixed(1) : '0.0'}h</p>
               </div>
             </CardContent>
           </Card>
@@ -492,50 +492,52 @@ export default function WorkTrackingPage() {
               <Button onClick={() => setDialogOpen(true)}>Add Your First Work Log</Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Work Type</TableHead>
-                  <TableHead>Company Name</TableHead>
-                  <TableHead className="text-right">Machine Hours</TableHead>
-                  <TableHead className="text-right">Jobs Completed</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {workLogs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="font-medium">{new Date(log.log_date).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Badge variant={log.work_type === 'inhouse' ? 'default' : 'secondary'}>
-                        {log.work_type === 'inhouse' ? (
-                          <Building2 className="mr-1 h-3 w-3" />
-                        ) : (
-                          <Factory className="mr-1 h-3 w-3" />
-                        )}
-                        {log.work_type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{log.company_name}</TableCell>
-                    <TableCell className="text-right">{log.machine_hours.toFixed(1)}h / 24h</TableCell>
-                    <TableCell className="text-right">{log.jobs_completed}</TableCell>
-                    <TableCell className="max-w-xs truncate">{log.notes || '-'}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(log)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleDelete(log.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Date</TableHead>
+                    <TableHead className="whitespace-nowrap">Work Type</TableHead>
+                    <TableHead className="whitespace-nowrap">Company Name</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Machine Hours</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Jobs Completed</TableHead>
+                    <TableHead className="whitespace-nowrap">Notes</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {workLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="font-medium whitespace-nowrap">{new Date(log.log_date).toLocaleDateString()}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <Badge variant={log.work_type === 'inhouse' ? 'default' : 'secondary'}>
+                          {log.work_type === 'inhouse' ? (
+                            <Building2 className="mr-1 h-3 w-3" />
+                          ) : (
+                            <Factory className="mr-1 h-3 w-3" />
+                          )}
+                          {log.work_type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{log.company_name}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">{log.machine_hours ? log.machine_hours.toFixed(1) : '0.0'}h / 24h</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">{log.jobs_completed}</TableCell>
+                      <TableCell className="max-w-xs truncate whitespace-nowrap">{log.notes || '-'}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(log)} title="Edit">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDelete(log.id)} title="Delete">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

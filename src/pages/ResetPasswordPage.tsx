@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     // Listen for auth state changes to get the recovery session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
         // Wait a moment for session to be fully restored
         await new Promise(resolve => setTimeout(resolve, 500));

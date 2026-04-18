@@ -118,34 +118,34 @@ export default function EditWorkOrderPage() {
 
   if (pageLoading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
-        <Skeleton className="h-10 w-64 bg-muted" />
-        <Skeleton className="h-96 bg-muted" />
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        <Skeleton className="h-8 sm:h-10 w-48 sm:w-64 bg-muted" />
+        <Skeleton className="h-80 sm:h-96 bg-muted" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(`/work-orders/${id}`)}>
-          <ArrowLeft className="h-5 w-5" />
+    <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(`/work-orders/${id}`)} className="shrink-0">
+          <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Edit Work Order</h1>
-          <p className="text-muted-foreground">Update work order details</p>
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">Edit Work Order</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Update work order details</p>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Work Order Information</CardTitle>
-          <CardDescription>Update the work order details below</CardDescription>
+        <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+          <CardTitle className="text-lg sm:text-xl">Work Order Information</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Update the work order details below</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Customer Selection */}
                 <FormField
                   control={form.control}
@@ -370,20 +370,30 @@ export default function EditWorkOrderPage() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes (Optional)</FormLabel>
+                    <FormLabel className="text-sm sm:text-base">Notes (Optional)</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Enter any additional notes" rows={4} {...field} />
+                      <Textarea 
+                        placeholder="Enter any additional notes" 
+                        rows={4} 
+                        className="text-sm sm:text-base"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="flex justify-end gap-4">
-                <Button type="button" variant="outline" onClick={() => navigate(`/work-orders/${id}`)}>
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => navigate(`/work-orders/${id}`)}
+                  className="w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Update Work Order
                 </Button>

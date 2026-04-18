@@ -94,13 +94,13 @@ export default function WorkOrderListPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Work Orders</h1>
-          <p className="text-muted-foreground">Manage and track all work orders</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Work Orders</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Manage and track all work orders</p>
         </div>
-        <Button onClick={() => navigate('/work-orders/create')}>
+        <Button onClick={() => navigate('/work-orders/create')} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Create Work Order
         </Button>
@@ -158,40 +158,41 @@ export default function WorkOrderListPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Order Number</TableHead>
-                    <TableHead>Company Name</TableHead>
-                    <TableHead>Job Name</TableHead>
-                    <TableHead>Rate/Piece</TableHead>
-                    <TableHead>Qty Ordered</TableHead>
-                    <TableHead>Qty Completed</TableHead>
-                    <TableHead>Pending</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="whitespace-nowrap">Order Number</TableHead>
+                    <TableHead className="whitespace-nowrap">Company Name</TableHead>
+                    <TableHead className="whitespace-nowrap">Job Name</TableHead>
+                    <TableHead className="whitespace-nowrap">Rate/Piece</TableHead>
+                    <TableHead className="whitespace-nowrap">Qty Ordered</TableHead>
+                    <TableHead className="whitespace-nowrap">Qty Completed</TableHead>
+                    <TableHead className="whitespace-nowrap">Pending</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredOrders.map((order) => (
                     <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.work_order_number}</TableCell>
-                      <TableCell>{order.company_name}</TableCell>
-                      <TableCell>{order.job_name || '-'}</TableCell>
-                      <TableCell>₹{order.rate_per_piece.toLocaleString()}</TableCell>
-                      <TableCell>{order.quantity_ordered}</TableCell>
-                      <TableCell className="text-green-600 font-semibold">
+                      <TableCell className="font-medium whitespace-nowrap">{order.work_order_number}</TableCell>
+                      <TableCell className="whitespace-nowrap">{order.company_name}</TableCell>
+                      <TableCell className="whitespace-nowrap">{order.job_name || '-'}</TableCell>
+                      <TableCell className="whitespace-nowrap">₹{order.rate_per_piece.toLocaleString()}</TableCell>
+                      <TableCell className="whitespace-nowrap">{order.quantity_ordered}</TableCell>
+                      <TableCell className="text-green-600 font-semibold whitespace-nowrap">
                         {(order as any).quantity_completed || 0}
                       </TableCell>
-                      <TableCell className="font-semibold text-primary">
+                      <TableCell className="font-semibold text-primary whitespace-nowrap">
                         {(order as any).quantity_pending !== undefined 
                           ? (order as any).quantity_pending 
                           : order.outstanding_quantity}
                       </TableCell>
-                      <TableCell>{getStatusBadge(order.status)}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="whitespace-nowrap">{getStatusBadge(order.status)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => navigate(`/work-orders/${order.id}`)}
+                            title="View"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -199,6 +200,7 @@ export default function WorkOrderListPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleDelete(order.id, order.work_order_number)}
+                            title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

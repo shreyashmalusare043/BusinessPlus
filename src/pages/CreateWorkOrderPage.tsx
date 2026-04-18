@@ -74,26 +74,26 @@ export default function CreateWorkOrderPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/work-orders')}>
-          <ArrowLeft className="h-5 w-5" />
+    <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/work-orders')} className="shrink-0">
+          <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Create Work Order</h1>
-          <p className="text-muted-foreground">Add a new work order to track</p>
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">Create Work Order</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Add a new work order to track</p>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Work Order Details</CardTitle>
-          <CardDescription>Fill in the work order information</CardDescription>
+        <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+          <CardTitle className="text-lg sm:text-xl">Work Order Details</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Fill in the work order information</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Customer Selection */}
                 <FormField
                   control={form.control}
@@ -318,11 +318,11 @@ export default function CreateWorkOrderPage() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel className="text-sm sm:text-base">Notes</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Add any additional notes or comments..."
-                        className="min-h-24"
+                        className="min-h-20 sm:min-h-24 text-sm sm:text-base"
                         {...field}
                       />
                     </FormControl>
@@ -331,8 +331,8 @@ export default function CreateWorkOrderPage() {
                 )}
               />
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={loading}>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
+                <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -342,7 +342,12 @@ export default function CreateWorkOrderPage() {
                     'Create Work Order'
                   )}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => navigate('/work-orders')}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => navigate('/work-orders')}
+                  className="w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
               </div>
