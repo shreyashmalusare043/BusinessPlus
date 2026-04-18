@@ -15,11 +15,15 @@ export async function generateWorkOrderNumber(): Promise<string> {
   return `WO-${String(orderNumber).padStart(5, '0')}`;
 }
 
-// Get all work orders
+// Get all work orders for the current user only
 export async function getWorkOrders(): Promise<WorkOrder[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const { data, error } = await supabase
     .from('work_orders_with_progress')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -30,13 +34,17 @@ export async function getWorkOrders(): Promise<WorkOrder[]> {
   return Array.isArray(data) ? data : [];
 }
 
-// Get work order by ID with details
+// Get work order by ID with details - only for current user
 export async function getWorkOrderById(id: string): Promise<WorkOrderWithDetails | null> {
-  // Fetch work order with progress from view
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Fetch work order with progress from view - only if it belongs to current user
   const { data: workOrder, error } = await supabase
     .from('work_orders_with_progress')
     .select('*')
     .eq('id', id)
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (error || !workOrder) {
@@ -117,15 +125,19 @@ export async function createWorkOrder(workOrderData: WorkOrderForm): Promise<Wor
   return data;
 }
 
-// Update work order
+// Update work order - only for current user
 export async function updateWorkOrder(
   id: string,
   updates: Partial<WorkOrderForm>
 ): Promise<WorkOrder | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const { data, error } = await supabase
     .from('work_orders')
     .update(updates)
     .eq('id', id)
+    .eq('user_id', user.id)
     .select()
     .single();
 
@@ -137,12 +149,16 @@ export async function updateWorkOrder(
   return data;
 }
 
-// Delete work order
+// Delete work order - only for current user
 export async function deleteWorkOrder(id: string): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const { error } = await supabase
     .from('work_orders')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id);
 
   if (error) {
     console.error('Error deleting work order:', error);
@@ -152,11 +168,15 @@ export async function deleteWorkOrder(id: string): Promise<boolean> {
   return true;
 }
 
-// Get work orders by status
+// Get work orders by status - only for current user
 export async function getWorkOrdersByStatus(status: string): Promise<WorkOrder[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const { data, error } = await supabase
     .from('work_orders_with_progress')
     .select('*')
+    .eq('user_id', user.id)
     .eq('status', status)
     .order('created_at', { ascending: false });
 
@@ -168,11 +188,15 @@ export async function getWorkOrdersByStatus(status: string): Promise<WorkOrder[]
   return Array.isArray(data) ? data : [];
 }
 
-// Get work orders by customer
+// Get work orders by customer - only for current user
 export async function getWorkOrdersByCustomer(customerId: string): Promise<WorkOrder[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const { data, error } = await supabase
     .from('work_orders_with_progress')
     .select('*')
+    .eq('user_id', user.id)
     .eq('customer_id', customerId)
     .order('created_at', { ascending: false });
 
