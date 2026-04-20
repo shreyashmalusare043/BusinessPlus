@@ -14,6 +14,7 @@ import type {
   SupportTicket,
   DeliveryChallan,
   DeliveryChallanWithItems,
+  DeliveryChallanItem,
   DeliveryChallanForm,
   Subscription,
   SubscriptionWithUser,
@@ -258,33 +259,51 @@ export async function createBill(billData: BillForm): Promise<Bill> {
   let subtotal = 0;
   let totalCgst = 0;
   let totalSgst = 0;
+  let totalIgst = 0;
 
   const itemsToInsert: Omit<BillItem, 'id' | 'bill_id' | 'created_at'>[] = [];
 
   for (const item of billData.items) {
     const lineSubtotal = item.quantity * item.unit_price;
-    const cgstAmount = (lineSubtotal * item.cgst_rate) / 100;
-    const sgstAmount = (lineSubtotal * item.sgst_rate) / 100;
-    const lineTotal = lineSubtotal + cgstAmount + sgstAmount;
+    let cgstAmount = 0;
+    let sgstAmount = 0;
+    let igstAmount = 0;
+    let lineTotal = lineSubtotal;
+
+    if (billData.gst_type === 'cgst_sgst') {
+      cgstAmount = (lineSubtotal * item.cgst_rate) / 100;
+      sgstAmount = (lineSubtotal * item.sgst_rate) / 100;
+      lineTotal = lineSubtotal + cgstAmount + sgstAmount;
+      totalCgst += cgstAmount;
+      totalSgst += sgstAmount;
+    } else {
+      igstAmount = (lineSubtotal * item.igst_rate) / 100;
+      lineTotal = lineSubtotal + igstAmount;
+      totalIgst += igstAmount;
+    }
 
     subtotal += lineSubtotal;
-    totalCgst += cgstAmount;
-    totalSgst += sgstAmount;
 
     itemsToInsert.push({
       item_name: item.item_name,
       hsn_code: item.hsn_code || null,
       quantity: item.quantity,
+      unit: item.unit,
       unit_price: item.unit_price,
       cgst_rate: item.cgst_rate,
       sgst_rate: item.sgst_rate,
+      igst_rate: item.igst_rate,
       cgst_amount: cgstAmount,
       sgst_amount: sgstAmount,
+      igst_amount: igstAmount,
       line_total: lineTotal,
     });
   }
 
-  const grandTotal = subtotal + totalCgst + totalSgst;
+  const gstTotal = billData.gst_type === 'cgst_sgst' ? totalCgst + totalSgst : totalIgst;
+  const amountBeforeTcs = subtotal + gstTotal;
+  const tcsAmount = billData.tcs_applicable ? (amountBeforeTcs * 1) / 100 : 0;
+  const grandTotal = amountBeforeTcs + tcsAmount;
 
   // Insert bill
   const { data: bill, error: billError } = await supabase
@@ -298,11 +317,15 @@ export async function createBill(billData: BillForm): Promise<Bill> {
       customer_gst_number: billData.customer_gst_number || null,
       customer_email: billData.customer_email || null,
       po_number: billData.po_number || null,
+      gst_type: billData.gst_type,
       payment_status: billData.payment_status || 'pending',
       payment_reminder: billData.payment_reminder || 'none',
       subtotal,
       total_cgst: totalCgst,
       total_sgst: totalSgst,
+      total_igst: totalIgst,
+      tcs_applicable: billData.tcs_applicable,
+      tcs_amount: tcsAmount,
       grand_total: grandTotal,
     })
     .select()
@@ -334,6 +357,11 @@ export async function updateBillPaymentStatus(billId: string, status: 'pending' 
     .update({ payment_status: status, updated_at: new Date().toISOString() })
     .eq('id', billId);
 
+  if (error) throw error;
+}
+
+export async function deleteBill(billId: string): Promise<void> {
+  const { error } = await supabase.from('bills').delete().eq('id', billId);
   if (error) throw error;
 }
 

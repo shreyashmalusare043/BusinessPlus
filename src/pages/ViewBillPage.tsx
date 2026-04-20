@@ -1,14 +1,15 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { getBillById, getMyCompany, checkSubscriptionStatus } from '@/db/api';
+import { getBillById, getMyCompany, checkSubscriptionStatus, deleteBill } from '@/db/api';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Printer, ArrowLeft, Download } from 'lucide-react';
+import { Printer, ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { Watermark } from '@/components/ui/watermark';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BillWithItems, Company } from '@/types';
-import html2pdf from 'html2pdf.js';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 // Bill Copy Component - Minimalist Corporate Style
 const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: Company; copyType: string }) => (
@@ -100,7 +101,8 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
             <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-12 min-w-[40px]">#</th>
             <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide min-w-[120px]">Description</th>
             <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">HSN/SAC</th>
-            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-16 min-w-[60px]">Qty</th>
+            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">Qty/Wgt</th>
+            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">Unit</th>
             <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">Rate</th>
             <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-28 min-w-[90px]">Amount</th>
           </tr>
@@ -112,6 +114,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
               <td className="py-3 px-2 text-sm font-medium text-gray-900">{item.item_name}</td>
               <td className="py-3 px-2 text-sm text-center text-gray-600">{item.hsn_code}</td>
               <td className="py-3 px-2 text-sm text-center text-gray-600">{item.quantity}</td>
+              <td className="py-3 px-2 text-sm text-center text-gray-600">{item.unit}</td>
               <td className="py-3 px-2 text-sm text-right text-gray-600">₹{item.unit_price.toFixed(2)}</td>
               <td className="py-3 px-2 text-sm text-right font-semibold text-gray-900">₹{item.line_total.toFixed(2)}</td>
             </tr>
@@ -121,13 +124,19 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
     </div>
 
     {/* Summary Section */}
-    <div className="flex justify-end mb-6 md:mb-8">
-      <div className="w-full md:w-80">
-        <div className="space-y-2">
-          <div className="flex justify-between py-2 text-sm border-b border-gray-200">
-            <span className="text-gray-600">Subtotal</span>
-            <span className="font-medium text-gray-900">₹{bill.subtotal.toFixed(2)}</span>
-          </div>
+   <div className="flex justify-end mb-6 md:mb-8">
+  <div className="w-full md:w-80">
+    <div className="space-y-2">
+      
+      {/* Subtotal */}
+      <div className="flex justify-between py-2 text-sm border-b border-gray-200">
+        <span className="text-gray-600">Subtotal</span>
+        <span className="font-medium text-gray-900">₹{bill.subtotal.toFixed(2)}</span>
+      </div>
+
+      {/* GST Condition */}
+      {bill.gst_type === 'cgst_sgst' ? (
+        <>
           <div className="flex justify-between py-2 text-sm border-b border-gray-200">
             <span className="text-gray-600">CGST (9%)</span>
             <span className="font-medium text-gray-900">₹{bill.total_cgst.toFixed(2)}</span>
@@ -136,22 +145,39 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
             <span className="text-gray-600">SGST (9%)</span>
             <span className="font-medium text-gray-900">₹{bill.total_sgst.toFixed(2)}</span>
           </div>
-          <div 
-  className="flex justify-between py-3 px-4 mt-2"
-  style={{
-  backgroundColor: '#f97316',
-  color: '#ffffff',
-  WebkitPrintColorAdjust: 'exact',
-  printColorAdjust: 'exact'
-}}
->
-            <span className="font-bold text-sm md:text-base">Total Amount</span>
-            <span className="font-bold text-lg md:text-xl">₹{bill.grand_total.toFixed(2)}</span>
-          </div>
+        </>
+      ) : (
+        <div className="flex justify-between py-2 text-sm border-b border-gray-200">
+          <span className="text-gray-600">IGST (18%)</span>
+          <span className="font-medium text-gray-900">₹{bill.total_igst.toFixed(2)}</span>
         </div>
-      </div>
-    </div>
+      )}
 
+      {/* TCS */}
+      {bill.tcs_applicable && (
+        <div className="flex justify-between py-2 text-sm border-b border-gray-200">
+          <span className="text-gray-600">TCS (1%)</span>
+          <span className="font-medium text-gray-900">₹{bill.tcs_amount.toFixed(2)}</span>
+        </div>
+      )}
+
+      {/* Grand Total */}
+      <div 
+        className="flex justify-between py-3 px-4 mt-2"
+        style={{
+          backgroundColor: '#f97316',
+          color: '#ffffff',
+          WebkitPrintColorAdjust: 'exact',
+          printColorAdjust: 'exact'
+        }}
+      >
+        <span className="font-bold text-sm md:text-base">Total Amount</span>
+        <span className="font-bold text-lg md:text-xl">₹{bill.grand_total.toFixed(2)}</span>
+      </div>
+
+    </div>
+  </div>
+</div>
     {/* Bank Details & Footer */}
     <div className="border-t-2 border-gray-200 pt-6">
       <div className="grid grid-cols-2 gap-8">
@@ -204,6 +230,8 @@ export default function ViewBillPage() {
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWatermark, setShowWatermark] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { profile } = useAuth();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
@@ -243,96 +271,25 @@ export default function ViewBillPage() {
     contentRef: printRef,
   });
 
-  const handleDownloadPDF = async () => {
-  if (!printRef.current || !bill) return;
+  const handleEditBill = () => {
+    if (bill) {
+      navigate(`/bills/edit/${bill.id}`);
+    }
+  };
 
-  const element = printRef.current;
-
-  const copies = element.querySelectorAll('.bill-copy');
-
-  copies.forEach((copy: any) => {
-    copy.style.transform = 'none';
-    copy.style.width = '210mm';
-    copy.style.minWidth = '210mm';
-  });
-
-  // 🔥 WAIT for DOM update (IMPORTANT)
-  await new Promise((res) => setTimeout(res, 500));
-
+  const handleDeleteBill = async () => {
+    if (!id) return;
+    
+    setDeleting(true);
     try {
-      const element = printRef.current;
-      const billDate = new Date(bill.bill_date).toISOString().split('T')[0];
-      const filename = `Bill_${bill.bill_no}_${billDate}.pdf`;
-
-      console.log('Starting PDF generation for:', filename);
-
-      // Temporarily remove mobile scaling for PDF generation
-      const billCopies = element.querySelectorAll('.bill-copy');
-      console.log('Found bill copies:', billCopies.length);
-      
-      const originalStyles: Array<{transform: string; width: string; margin: string; minWidth: string}> = [];
-      
-      billCopies.forEach((copy, index) => {
-        const htmlCopy = copy as HTMLElement;
-        originalStyles[index] = {
-          transform: htmlCopy.style.transform,
-          width: htmlCopy.style.width,
-          margin: htmlCopy.style.marginBottom,
-          minWidth: htmlCopy.style.minWidth
-        };
-        
-        // Remove all scaling and force full size
-      
-        htmlCopy.style.width = '210mm';
-        htmlCopy.style.minWidth = '210mm';
-        htmlCopy.style.maxWidth = '210mm';
-        htmlCopy.style.boxSizing = 'border-box';
-      });
-
-      const opt = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: filename,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          logging: true,
-          letterRendering: true
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' as const
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
-      console.log('Generating PDF with options:', opt);
-
-const firstCopy = element.querySelector('.bill-copy') as HTMLElement;
-
-if (!firstCopy) {
-  console.error('No bill copy found');
-  return;
-}
-
-await html2pdf().set(opt).from(firstCopy).save();
-
-console.log('PDF generated successfully');
-
-      // Restore mobile scaling
-      billCopies.forEach((copy, index) => {
-        const htmlCopy = copy as HTMLElement;
-        htmlCopy.style.transform = originalStyles[index].transform;
-        htmlCopy.style.width = originalStyles[index].width;
-        htmlCopy.style.marginBottom = originalStyles[index].margin;
-        htmlCopy.style.minWidth = originalStyles[index].minWidth;
-      });
-      
-      console.log('Mobile scaling restored');
-    } catch (error) {
-      console.error('Failed to generate PDF:', error);
-      alert('Failed to generate PDF. Please check the console for details.');
+      await deleteBill(id);
+      toast.success('Bill deleted successfully');
+      navigate('/bills');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete bill');
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -371,10 +328,21 @@ console.log('PDF generated successfully');
           Back to Bills
         </Button>
         <div className="flex flex-col sm:flex-row gap-2">
-          
+          <Button onClick={handleEditBill} className="w-full sm:w-auto">
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Bill
+          </Button>
           <Button onClick={handlePrint} className="w-full sm:w-auto">
             <Printer className="h-4 w-4 mr-2" />
             Print Bill
+          </Button>
+          <Button 
+            onClick={() => setShowDeleteDialog(true)} 
+            variant="destructive"
+            className="w-full sm:w-auto"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Bill
           </Button>
         </div>
       </div>
@@ -536,6 +504,34 @@ console.log('PDF generated successfully');
   {showWatermark && <Watermark type="bill" />}
 </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Bill</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this bill? 
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteBill}
+              disabled={deleting}
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

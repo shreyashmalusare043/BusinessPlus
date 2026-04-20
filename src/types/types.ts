@@ -7,6 +7,9 @@ export type WorkType = 'outsource' | 'inhouse';
 export type SubscriptionPlan = 'free' | 'monthly' | 'yearly';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled';
 export type TransactionStatus = 'pending' | 'success' | 'failed' | 'refunded';
+export type PurchaseOrderClassification = 'expense' | 'stock';
+export type GstType = 'cgst_sgst' | 'igst';
+export type UnitType = 'Nos' | 'Ltr' | 'Kg';
 
 export interface Profile {
   id: string;
@@ -94,9 +97,13 @@ export interface Bill {
   customer_gst_number: string | null;
   customer_email: string | null;
   po_number: string | null;
+  gst_type: GstType;
   subtotal: number;
   total_cgst: number;
   total_sgst: number;
+  total_igst: number;
+  tcs_applicable: boolean;
+  tcs_amount: number;
   grand_total: number;
   payment_status: PaymentStatus;
   payment_reminder: PaymentReminder;
@@ -112,11 +119,14 @@ export interface BillItem {
   item_name: string;
   hsn_code: string | null;
   quantity: number;
+  unit: UnitType;  
   unit_price: number;
   cgst_rate: number;
   sgst_rate: number;
+  igst_rate: number;
   cgst_amount: number;
   sgst_amount: number;
+  igst_amount: number;
   line_total: number;
   created_at: string;
 }
@@ -135,6 +145,7 @@ export interface PurchaseOrder {
   supplier_contact: string | null;
   supplier_address: string | null;
   supplier_gst_number: string | null;
+  classification: PurchaseOrderClassification;
   subtotal: number;
   total_cgst: number;
   total_sgst: number;
@@ -179,9 +190,11 @@ export interface BillItemForm {
   item_name: string;
   hsn_code: string;
   quantity: number;
+  unit: UnitType;   
   unit_price: number;
   cgst_rate: number;
   sgst_rate: number;
+  igst_rate: number;
 }
 
 export interface BillForm {
@@ -191,6 +204,8 @@ export interface BillForm {
   customer_email?: string;
   bill_date: string;
   po_number?: string;
+  gst_type: GstType;
+  tcs_applicable: boolean;
   payment_status?: PaymentStatus;
   payment_reminder?: PaymentReminder;
   items: BillItemForm[];
@@ -212,7 +227,7 @@ export interface PurchaseOrderForm {
   supplier_gst_number: string;
   invoice_no: string;
   po_date: string;
-  classification: 'expense' | 'stock';
+  classification: PurchaseOrderClassification;
   items: PurchaseOrderItemForm[];
 }
 

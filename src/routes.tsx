@@ -150,6 +150,12 @@ const routes: RouteConfig[] = [
     visible: false,
   },
   {
+    name: 'Edit Bill',
+    path: '/bills/edit/:id',
+    element: <CreateBillPage isEdit={true} />,
+    visible: false,
+  },
+  {
     name: 'View Bill',
     path: '/bills/:id',
     element: <ViewBillPage />,
