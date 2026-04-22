@@ -57,18 +57,38 @@ export default function ViewPurchaseOrderPage() {
     );
   }
 
+  const getStatusBadge = (status: string) => {
+    const statusColors: Record<string, string> = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      confirmed: 'bg-green-100 text-green-800',
+      revised: 'bg-blue-100 text-blue-800',
+    };
+    const color = statusColors[status] || 'bg-gray-100 text-gray-800';
+    return (
+      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${color}`}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <Button variant="ghost" onClick={() => navigate('/purchase-orders')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Purchase Orders
+        </Button>
+        <Button onClick={() => navigate(`/purchase-orders/${id}/edit`)}>
+          Edit Purchase Order
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Purchase Order Details</CardTitle>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <CardTitle>Purchase Order Details</CardTitle>
+            {po.status && getStatusBadge(po.status)}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">

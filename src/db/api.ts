@@ -14,7 +14,6 @@ import type {
   SupportTicket,
   DeliveryChallan,
   DeliveryChallanWithItems,
-  DeliveryCuuuhallanItem,
   DeliveryChallanForm,
   Subscription,
   SubscriptionWithUser,
@@ -457,7 +456,7 @@ export async function updateBill(billId: string, billData: BillForm, oldBillItem
       const newItem = billData.items.find(i => i.item_name === oldItem.item_name && i.hsn_code === oldItem.hsn_code);
       const quantityDifference = newItem ? newItem.quantity - oldItem.quantity : -oldItem.quantity;
       
-      if (quantityDifference !== 0) {
+      if (quantityDifference !== 0 && oldItem.hsn_code) {
         await updateStockQuantity(oldItem.item_name, oldItem.hsn_code, -quantityDifference);
       }
     }
@@ -690,6 +689,7 @@ export async function createPurchaseOrder(poData: PurchaseOrderForm): Promise<Pu
       supplier_address: poData.supplier_address || null,
       supplier_gst_number: poData.supplier_gst_number || null,
       classification: poData.classification,
+      status: 'pending',
       subtotal,
       total_cgst: totalCgst,
       total_sgst: totalSgst,
@@ -766,6 +766,87 @@ export async function getPurchaseOrdersByDateRange(startDate: string, endDate: s
     ...po,
     purchase_order_items: Array.isArray(items) ? items.filter(item => item.po_id === po.id) : [],
   }));
+}
+
+export async function updatePurchaseOrder(poId: string, poData: PurchaseOrderForm): Promise<PurchaseOrder> {
+  const userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) throw new Error('User not authenticated');
+
+  // Calculate totals
+  let subtotal = 0;
+  let totalCgst = 0;
+  let totalSgst = 0;
+
+  const itemsToInsert: Omit<PurchaseOrderItem, 'id' | 'po_id' | 'created_at'>[] = [];
+
+  for (const item of poData.items) {
+    const lineSubtotal = item.quantity * item.unit_price;
+    const cgstAmount = (lineSubtotal * item.cgst_rate) / 100;
+    const sgstAmount = (lineSubtotal * item.sgst_rate) / 100;
+    const lineTotal = lineSubtotal + cgstAmount + sgstAmount;
+
+    subtotal += lineSubtotal;
+    totalCgst += cgstAmount;
+    totalSgst += sgstAmount;
+
+    itemsToInsert.push({
+      item_name: item.item_name,
+      hsn_code: item.hsn_code || null,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      cgst_rate: item.cgst_rate,
+      sgst_rate: item.sgst_rate,
+      cgst_amount: cgstAmount,
+      sgst_amount: sgstAmount,
+      line_total: lineTotal,
+    });
+  }
+
+  const grandTotal = subtotal + totalCgst + totalSgst;
+
+  // Update purchase order - set status to 'revised' when updating
+  const { data: po, error: poError } = await supabase
+    .from('purchase_orders')
+    .update({
+      invoice_no: poData.invoice_no || null,
+      po_date: poData.po_date,
+      supplier_name: poData.supplier_name,
+      supplier_contact: poData.supplier_contact || null,
+      supplier_address: poData.supplier_address || null,
+      supplier_gst_number: poData.supplier_gst_number || null,
+      classification: poData.classification,
+      status: 'revised',
+      subtotal,
+      total_cgst: totalCgst,
+      total_sgst: totalSgst,
+      grand_total: grandTotal,
+    })
+    .eq('id', poId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (poError) throw poError;
+
+  // Delete old items
+  const { error: deleteError } = await supabase
+    .from('purchase_order_items')
+    .delete()
+    .eq('po_id', poId);
+
+  if (deleteError) throw deleteError;
+
+  // Insert new items
+  const itemsWithPOId = itemsToInsert.map((item) => ({
+    ...item,
+    po_id: poId,
+  }));
+
+  const { error: itemsError } = await supabase.from('purchase_order_items').insert(itemsWithPOId);
+
+  if (itemsError) throw itemsError;
+
+  return po;
 }
 
 // ============ Stock APIs ============

@@ -19,6 +19,7 @@ import ViewBillPage from './pages/ViewBillPage';
 import PurchaseOrderListPage from './pages/PurchaseOrderListPage';
 import CreatePurchaseOrderPage from './pages/CreatePurchaseOrderPage';
 import ViewPurchaseOrderPage from './pages/ViewPurchaseOrderPage';
+import EditPurchaseOrderPage from './pages/EditPurchaseOrderPage';
 import ExpensesPage from './pages/ExpensesPage';
 import StockPage from './pages/StockPage';
 import ReportsPage from './pages/ReportsPage';
@@ -176,6 +177,12 @@ const routes: RouteConfig[] = [
     name: 'View Purchase Order',
     path: '/purchase-orders/:id',
     element: <ViewPurchaseOrderPage />,
+    visible: false,
+  },
+  {
+    name: 'Edit Purchase Order',
+    path: '/purchase-orders/:id/edit',
+    element: <EditPurchaseOrderPage />,
     visible: false,
   },
   {

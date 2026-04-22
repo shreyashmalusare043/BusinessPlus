@@ -146,6 +146,7 @@ export interface PurchaseOrder {
   supplier_address: string | null;
   supplier_gst_number: string | null;
   classification: PurchaseOrderClassification;
+  status: 'pending' | 'confirmed' | 'revised';
   subtotal: number;
   total_cgst: number;
   total_sgst: number;
@@ -228,6 +229,7 @@ export interface PurchaseOrderForm {
   supplier_gst_number: string;
   invoice_no: string;
   po_date: string;
+  status?: 'pending' | 'confirmed' | 'revised';
   classification: PurchaseOrderClassification;
   gst_type: 'cgst_sgst' | 'igst';
   items: PurchaseOrderItemForm[];
