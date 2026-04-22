@@ -218,6 +218,7 @@ export interface PurchaseOrderItemForm {
   unit_price: number;
   cgst_rate: number;
   sgst_rate: number;
+  igst_rate: number;
 }
 
 export interface PurchaseOrderForm {
@@ -228,6 +229,7 @@ export interface PurchaseOrderForm {
   invoice_no: string;
   po_date: string;
   classification: PurchaseOrderClassification;
+  gst_type: 'cgst_sgst' | 'igst';
   items: PurchaseOrderItemForm[];
 }
 

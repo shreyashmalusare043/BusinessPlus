@@ -243,9 +243,13 @@ export async function unlinkWorkLogFromWorkOrder(workLogId: string): Promise<boo
 
 // Get active work orders (pending or in_progress) for Work Track dropdown
 export async function getActiveWorkOrders(): Promise<WorkOrder[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const { data, error } = await supabase
     .from('work_orders_with_progress')
     .select('*')
+    .eq('user_id', user.id)
     .in('status', ['pending', 'in_progress'])
     .order('created_at', { ascending: false });
 

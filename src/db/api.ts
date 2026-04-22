@@ -14,7 +14,7 @@ import type {
   SupportTicket,
   DeliveryChallan,
   DeliveryChallanWithItems,
-  DeliveryChallanItem,
+  DeliveryCuuuhallanItem,
   DeliveryChallanForm,
   Subscription,
   SubscriptionWithUser,
@@ -346,6 +346,121 @@ export async function createBill(billData: BillForm): Promise<Bill> {
   // Update stock quantities (decrement)
   for (const item of billData.items) {
     await updateStockQuantity(item.item_name, item.hsn_code, -item.quantity);
+  }
+
+  return bill;
+}
+
+export async function updateBill(billId: string, billData: BillForm, oldBillItems?: BillItem[]): Promise<Bill> {
+  const userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) throw new Error('User not authenticated');
+
+  // Calculate totals
+  let subtotal = 0;
+  let totalCgst = 0;
+  let totalSgst = 0;
+  let totalIgst = 0;
+
+  const itemsToInsert: Omit<BillItem, 'id' | 'bill_id' | 'created_at'>[] = [];
+
+  for (const item of billData.items) {
+    const lineSubtotal = item.quantity * item.unit_price;
+    let cgstAmount = 0;
+    let sgstAmount = 0;
+    let igstAmount = 0;
+    let lineTotal = lineSubtotal;
+
+    if (billData.gst_type === 'cgst_sgst') {
+      cgstAmount = (lineSubtotal * item.cgst_rate) / 100;
+      sgstAmount = (lineSubtotal * item.sgst_rate) / 100;
+      lineTotal = lineSubtotal + cgstAmount + sgstAmount;
+      totalCgst += cgstAmount;
+      totalSgst += sgstAmount;
+    } else {
+      igstAmount = (lineSubtotal * item.igst_rate) / 100;
+      lineTotal = lineSubtotal + igstAmount;
+      totalIgst += igstAmount;
+    }
+
+    subtotal += lineSubtotal;
+
+    itemsToInsert.push({
+      item_name: item.item_name,
+      hsn_code: item.hsn_code || null,
+      quantity: item.quantity,
+      unit: item.unit,
+      unit_price: item.unit_price,
+      cgst_rate: item.cgst_rate,
+      sgst_rate: item.sgst_rate,
+      igst_rate: item.igst_rate,
+      cgst_amount: cgstAmount,
+      sgst_amount: sgstAmount,
+      igst_amount: igstAmount,
+      line_total: lineTotal,
+    });
+  }
+
+  const gstTotal = billData.gst_type === 'cgst_sgst' ? totalCgst + totalSgst : totalIgst;
+  const amountBeforeTcs = subtotal + gstTotal;
+  const tcsAmount = billData.tcs_applicable ? (amountBeforeTcs * 1) / 100 : 0;
+  const grandTotal = amountBeforeTcs + tcsAmount;
+
+  // Update bill
+  const { data: bill, error: billError } = await supabase
+    .from('bills')
+    .update({
+      bill_date: billData.bill_date,
+      customer_name: billData.customer_name,
+      customer_address: billData.customer_address || null,
+      customer_gst_number: billData.customer_gst_number || null,
+      customer_email: billData.customer_email || null,
+      po_number: billData.po_number || null,
+      gst_type: billData.gst_type,
+      payment_status: billData.payment_status || 'pending',
+      payment_reminder: billData.payment_reminder || 'none',
+      subtotal,
+      total_cgst: totalCgst,
+      total_sgst: totalSgst,
+      total_igst: totalIgst,
+      tcs_applicable: billData.tcs_applicable,
+      tcs_amount: tcsAmount,
+      grand_total: grandTotal,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', billId)
+    .select()
+    .single();
+
+  if (billError) throw billError;
+
+  // Delete old bill items
+  const { error: deleteError } = await supabase
+    .from('bill_items')
+    .delete()
+    .eq('bill_id', billId);
+
+  if (deleteError) throw deleteError;
+
+  // Insert new bill items
+  const itemsWithBillId = itemsToInsert.map((item) => ({
+    ...item,
+    bill_id: billId,
+  }));
+
+  const { error: itemsError } = await supabase.from('bill_items').insert(itemsWithBillId);
+
+  if (itemsError) throw itemsError;
+
+  // Handle stock quantity adjustments
+  if (oldBillItems) {
+    for (const oldItem of oldBillItems) {
+      const newItem = billData.items.find(i => i.item_name === oldItem.item_name && i.hsn_code === oldItem.hsn_code);
+      const quantityDifference = newItem ? newItem.quantity - oldItem.quantity : -oldItem.quantity;
+      
+      if (quantityDifference !== 0) {
+        await updateStockQuantity(oldItem.item_name, oldItem.hsn_code, -quantityDifference);
+      }
+    }
   }
 
   return bill;

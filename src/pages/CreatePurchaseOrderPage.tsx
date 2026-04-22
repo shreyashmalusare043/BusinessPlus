@@ -30,6 +30,7 @@ export default function CreatePurchaseOrderPage() {
       invoice_no: '',
       po_date: new Date().toISOString().split('T')[0],
       classification: 'expense',
+      gst_type: 'cgst_sgst',
       items: [
         {
           item_name: '',
@@ -38,6 +39,7 @@ export default function CreatePurchaseOrderPage() {
           unit_price: 0,
           cgst_rate: 9,
           sgst_rate: 9,
+          igst_rate: 0,
         },
       ],
     },
@@ -97,31 +99,64 @@ export default function CreatePurchaseOrderPage() {
   });
 
   const calculateLineTotal = (item: PurchaseOrderItemForm) => {
+    const gstType = form.watch('gst_type');
     const subtotal = item.quantity * item.unit_price;
-    const cgst = (subtotal * item.cgst_rate) / 100;
-    const sgst = (subtotal * item.sgst_rate) / 100;
-    return subtotal + cgst + sgst;
+    
+    if (gstType === 'cgst_sgst') {
+      const cgst = (subtotal * item.cgst_rate) / 100;
+      const sgst = (subtotal * item.sgst_rate) / 100;
+      return subtotal + cgst + sgst;
+    } else {
+      const igst = (subtotal * item.igst_rate) / 100;
+      return subtotal + igst;
+    }
   };
 
   const calculateTotals = () => {
     const items = form.watch('items');
+    const gstType = form.watch('gst_type');
     let subtotal = 0;
     let totalCgst = 0;
     let totalSgst = 0;
+    let totalIgst = 0;
 
     items.forEach((item) => {
       const lineSubtotal = item.quantity * item.unit_price;
       subtotal += lineSubtotal;
-      totalCgst += (lineSubtotal * item.cgst_rate) / 100;
-      totalSgst += (lineSubtotal * item.sgst_rate) / 100;
+      
+      if (gstType === 'cgst_sgst') {
+        totalCgst += (lineSubtotal * item.cgst_rate) / 100;
+        totalSgst += (lineSubtotal * item.sgst_rate) / 100;
+      } else {
+        totalIgst += (lineSubtotal * item.igst_rate) / 100;
+      }
     });
 
+    const gstTotal = gstType === 'cgst_sgst' ? totalCgst + totalSgst : totalIgst;
     return {
       subtotal,
       totalCgst,
       totalSgst,
-      grandTotal: subtotal + totalCgst + totalSgst,
+      totalIgst,
+      grandTotal: subtotal + gstTotal,
     };
+  };
+
+  const handleGstTypeChange = (gstType: 'cgst_sgst' | 'igst') => {
+    form.setValue('gst_type', gstType);
+    const items = form.getValues('items');
+    
+    items.forEach((_, index) => {
+      if (gstType === 'cgst_sgst') {
+        form.setValue(`items.${index}.cgst_rate`, 9);
+        form.setValue(`items.${index}.sgst_rate`, 9);
+        form.setValue(`items.${index}.igst_rate`, 0);
+      } else {
+        form.setValue(`items.${index}.cgst_rate`, 0);
+        form.setValue(`items.${index}.sgst_rate`, 0);
+        form.setValue(`items.${index}.igst_rate`, 18);
+      }
+    });
   };
 
   const totals = calculateTotals();
@@ -404,22 +439,71 @@ export default function CreatePurchaseOrderPage() {
           </Card>
 
           <Card>
+            <CardHeader>
+              <CardTitle>GST Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="gst_type"
+                rules={{ required: 'GST type is required' }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>GST Type</FormLabel>
+                    <div className="flex gap-4 mt-3">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="cgst_sgst"
+                          value="cgst_sgst"
+                          checked={field.value === 'cgst_sgst'}
+                          onChange={() => handleGstTypeChange('cgst_sgst')}
+                          className="w-4 h-4"
+                        />
+                        <label htmlFor="cgst_sgst" className="text-sm cursor-pointer">
+                          CGST (9%) + SGST (9%)
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="igst"
+                          value="igst"
+                          checked={field.value === 'igst'}
+                          onChange={() => handleGstTypeChange('igst')}
+                          className="w-4 h-4"
+                        />
+                        <label htmlFor="igst" className="text-sm cursor-pointer">
+                          IGST (18%)
+                        </label>
+                      </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <CardTitle>Line Items</CardTitle>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() =>
+                onClick={() => {
+                  const gstType = form.getValues('gst_type');
                   append({
                     item_name: '',
                     hsn_code: '',
                     quantity: 1,
                     unit_price: 0,
-                    cgst_rate: 9,
-                    sgst_rate: 9,
-                  })
-                }
+                    cgst_rate: gstType === 'cgst_sgst' ? 9 : 0,
+                    sgst_rate: gstType === 'cgst_sgst' ? 9 : 0,
+                    igst_rate: gstType === 'igst' ? 18 : 0,
+                  });
+                }}
                 className="w-full sm:w-auto"
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -583,8 +667,14 @@ export default function CreatePurchaseOrderPage() {
                         <TableHead className="min-w-[100px]">HSN Code</TableHead>
                         <TableHead className="w-24 min-w-[80px]">Qty</TableHead>
                         <TableHead className="w-32 min-w-[100px]">Unit Price</TableHead>
-                        <TableHead className="w-24 min-w-[80px]">CGST %</TableHead>
-                        <TableHead className="w-24 min-w-[80px]">SGST %</TableHead>
+                        {form.watch('gst_type') === 'cgst_sgst' ? (
+                          <>
+                            <TableHead className="w-24 min-w-[80px]">CGST %</TableHead>
+                            <TableHead className="w-24 min-w-[80px]">SGST %</TableHead>
+                          </>
+                        ) : (
+                          <TableHead className="w-24 min-w-[80px]">IGST %</TableHead>
+                        )}
                         <TableHead className="text-right min-w-[100px]">Total</TableHead>
                         <TableHead className="w-16 min-w-[60px]"></TableHead>
                       </TableRow>
@@ -662,41 +752,67 @@ export default function CreatePurchaseOrderPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`items.${index}.cgst_rate`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      {...field}
-                                      type="number"
-                                      step="0.01"
-                                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
+                            {form.watch('gst_type') === 'cgst_sgst' ? (
+                              <>
+                                <FormField
+                                  control={form.control}
+                                  name={`items.${index}.cgst_rate`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormControl>
+                                        <Input
+                                          {...field}
+                                          type="number"
+                                          step="0.01"
+                                          disabled
+                                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                        />
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
+                              </>
+                            ) : (
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.igst_rate`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        type="number"
+                                        step="0.01"
+                                        disabled
+                                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            )}
                           </TableCell>
-                          <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`items.${index}.sgst_rate`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      {...field}
-                                      type="number"
-                                      step="0.01"
-                                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </TableCell>
+                          {form.watch('gst_type') === 'cgst_sgst' && (
+                            <TableCell>
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.sgst_rate`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        type="number"
+                                        step="0.01"
+                                        disabled
+                                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </TableCell>
+                          )}
                           <TableCell className="text-right font-medium">₹{lineTotal.toFixed(2)}</TableCell>
                           <TableCell>
                             {fields.length > 1 && (
@@ -724,14 +840,23 @@ export default function CreatePurchaseOrderPage() {
                     <span>Subtotal:</span>
                     <span className="font-medium">₹{totals.subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Total CGST:</span>
-                    <span className="font-medium">₹{totals.totalCgst.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Total SGST:</span>
-                    <span className="font-medium">₹{totals.totalSgst.toFixed(2)}</span>
-                  </div>
+                  {form.watch('gst_type') === 'cgst_sgst' ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span>Total CGST (9%):</span>
+                        <span className="font-medium">₹{totals.totalCgst.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Total SGST (9%):</span>
+                        <span className="font-medium">₹{totals.totalSgst.toFixed(2)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between text-sm">
+                      <span>Total IGST (18%):</span>
+                      <span className="font-medium">₹{totals.totalIgst.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-lg font-bold border-t pt-2">
                     <span>Grand Total:</span>
                     <span>₹{totals.grandTotal.toFixed(2)}</span>

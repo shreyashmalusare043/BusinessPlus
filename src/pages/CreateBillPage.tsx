@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,9 +14,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { createBill, getMyCustomers, createCustomer, checkSubscriptionStatus } from '@/db/api';
+import { createBill, updateBill, getMyCustomers, createCustomer, checkSubscriptionStatus, getBillById } from '@/db/api';
 import { Loader2, Plus, Trash2, UserPlus, Crown } from 'lucide-react';
-import type { BillForm, BillItemForm, Customer } from '@/types';
+import type { BillForm, BillItemForm, Customer, BillWithItems } from '@/types';
 
 export default function CreateBillPage() {
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,11 @@ export default function CreateBillPage() {
   const [hasPremium, setHasPremium] = useState(false);
   const [showNewCustomerDialog, setShowNewCustomerDialog] = useState(false);
   const [showPoNumber, setShowPoNumber] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editingBill, setEditingBill] = useState<BillWithItems | null>(null);
+  const [pageLoading, setPageLoading] = useState(false);
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
   const form = useForm<BillForm>({
     defaultValues: {
@@ -68,7 +72,56 @@ export default function CreateBillPage() {
   useEffect(() => {
     loadCustomers();
     checkPremium();
-  }, []);
+    
+    if (id) {
+      setIsEdit(true);
+      loadBill(id);
+    }
+  }, [id]);
+
+  const loadBill = async (billId: string) => {
+    setPageLoading(true);
+    try {
+      const bill = await getBillById(billId);
+      if (!bill) {
+        toast.error('Bill not found');
+        navigate('/bills');
+        return;
+      }
+      
+      setEditingBill(bill);
+      
+      // Populate form with bill data
+      form.reset({
+        customer_name: bill.customer_name,
+        customer_address: bill.customer_address || '',
+        customer_gst_number: bill.customer_gst_number || '',
+        customer_email: bill.customer_email || '',
+        bill_date: bill.bill_date,
+        po_number: bill.po_number || '',
+        gst_type: bill.gst_type as 'cgst_sgst' | 'igst',
+        tcs_applicable: bill.tcs_applicable,
+        payment_status: bill.payment_status,
+        payment_reminder: bill.payment_reminder,
+        items: bill.bill_items.map(item => ({
+          item_name: item.item_name,
+          hsn_code: item.hsn_code || '',
+          quantity: item.quantity,
+          unit: item.unit as 'Nos' | 'Ltr' | 'Kg',
+          unit_price: item.unit_price,
+          cgst_rate: item.cgst_rate,
+          sgst_rate: item.sgst_rate,
+          igst_rate: item.igst_rate,
+        })),
+      });
+    } catch (error) {
+      console.error('Failed to load bill:', error);
+      toast.error('Failed to load bill');
+      navigate('/bills');
+    } finally {
+      setPageLoading(false);
+    }
+  };
 
   const checkPremium = async () => {
     try {
@@ -154,7 +207,7 @@ export default function CreateBillPage() {
     });
 
     const gstTotal = gstType === 'cgst_sgst' ? totalCgst + totalSgst : totalIgst;
-    const tcsAmount = tcsApplicable ? (subtotal * 1) / 100 : 0;
+    const tcsAmount = tcsApplicable ? ((subtotal + gstTotal) * 1) / 100 : 0;
     const grandTotal = subtotal + gstTotal + tcsAmount;
 
     return {
@@ -194,11 +247,17 @@ export default function CreateBillPage() {
 
     setLoading(true);
     try {
-      const bill = await createBill(data);
-      toast.success('Bill created successfully');
-      navigate(`/bills/${bill.id}`);
+      if (isEdit && id && editingBill) {
+        await updateBill(id, data, editingBill.bill_items);
+        toast.success('Bill updated successfully');
+        navigate(`/bills/${id}`);
+      } else {
+        const bill = await createBill(data);
+        toast.success('Bill created successfully');
+        navigate(`/bills/${bill.id}`);
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create bill');
+      toast.error(error.message || (isEdit ? 'Failed to update bill' : 'Failed to create bill'));
     } finally {
       setLoading(false);
     }
@@ -206,12 +265,18 @@ export default function CreateBillPage() {
 
   return (
     <div className="space-y-6 px-4 md:px-0">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">Create Bill</h1>
-        <Button variant="outline" onClick={() => navigate('/bills')} className="w-full sm:w-auto">
-          Cancel
-        </Button>
-      </div>
+      {pageLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h1 className="text-2xl md:text-3xl font-bold">{isEdit ? 'Edit Bill' : 'Create Bill'}</h1>
+            <Button variant="outline" onClick={() => navigate('/bills')} className="w-full sm:w-auto">
+              Cancel
+            </Button>
+          </div>
 
       {/* Add New Customer Dialog - Outside main form */}
       <Dialog open={showNewCustomerDialog} onOpenChange={setShowNewCustomerDialog}>
@@ -846,11 +911,13 @@ export default function CreateBillPage() {
             </Button>
             <Button type="submit" disabled={loading} className="w-full sm:w-auto">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Bill
+              {isEdit ? 'Update Bill' : 'Create Bill'}
             </Button>
           </div>
         </form>
       </Form>
+        </>
+      )}
     </div>
   );
 }
