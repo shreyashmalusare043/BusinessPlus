@@ -156,7 +156,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
       {/* TCS */}
       {bill.tcs_applicable && (
         <div className="flex justify-between py-2 text-sm border-b border-gray-200">
-          <span className="text-gray-600">TCS (1%)</span>
+          <span className="text-gray-600">TCS (2%)</span>
           <span className="font-medium text-gray-900">₹{bill.tcs_amount.toFixed(2)}</span>
         </div>
       )}

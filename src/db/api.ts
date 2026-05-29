@@ -301,7 +301,7 @@ export async function createBill(billData: BillForm): Promise<Bill> {
 
   const gstTotal = billData.gst_type === 'cgst_sgst' ? totalCgst + totalSgst : totalIgst;
   const amountBeforeTcs = subtotal + gstTotal;
-  const tcsAmount = billData.tcs_applicable ? (amountBeforeTcs * 1) / 100 : 0;
+  const tcsAmount = billData.tcs_applicable ? (amountBeforeTcs * 2) / 100 : 0;
   const grandTotal = amountBeforeTcs + tcsAmount;
 
   // Insert bill
@@ -401,7 +401,7 @@ export async function updateBill(billId: string, billData: BillForm, oldBillItem
 
   const gstTotal = billData.gst_type === 'cgst_sgst' ? totalCgst + totalSgst : totalIgst;
   const amountBeforeTcs = subtotal + gstTotal;
-  const tcsAmount = billData.tcs_applicable ? (amountBeforeTcs * 1) / 100 : 0;
+  const tcsAmount = billData.tcs_applicable ? (amountBeforeTcs * 2) / 100 : 0;
   const grandTotal = amountBeforeTcs + tcsAmount;
 
   // Update bill

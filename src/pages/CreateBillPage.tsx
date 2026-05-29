@@ -207,7 +207,7 @@ export default function CreateBillPage() {
     });
 
     const gstTotal = gstType === 'cgst_sgst' ? totalCgst + totalSgst : totalIgst;
-    const tcsAmount = tcsApplicable ? ((subtotal + gstTotal) * 1) / 100 : 0;
+    const tcsAmount = tcsApplicable ? ((subtotal + gstTotal) * 2) / 100 : 0;
     const grandTotal = subtotal + gstTotal + tcsAmount;
 
     return {
@@ -553,7 +553,7 @@ export default function CreateBillPage() {
                   onCheckedChange={(checked) => form.setValue('tcs_applicable', checked as boolean)}
                 />
                 <Label htmlFor="tcs_applicable" className="cursor-pointer">
-                  Apply TCS (1%)
+                  Apply TCS (2%)
                 </Label>
               </div>
             </CardContent>
@@ -892,7 +892,7 @@ export default function CreateBillPage() {
                   )}
                   {form.watch('tcs_applicable') && (
                     <div className="flex justify-between text-sm">
-                      <span>TCS (1%):</span>
+                      <span>TCS (2%):</span>
                       <span className="font-medium">₹{totals.tcsAmount.toFixed(2)}</span>
                     </div>
                   )}
