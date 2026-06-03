@@ -108,17 +108,20 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
           </tr>
         </thead>
         <tbody>
-          {bill.bill_items.map((item: any, index: number) => (
-            <tr key={item.id} className="border-b border-gray-200">
-              <td className="py-3 px-2 text-sm text-gray-600">{index + 1}</td>
-              <td className="py-3 px-2 text-sm font-medium text-gray-900">{item.item_name}</td>
-              <td className="py-3 px-2 text-sm text-center text-gray-600">{item.hsn_code}</td>
-              <td className="py-3 px-2 text-sm text-center text-gray-600">{item.quantity}</td>
-              <td className="py-3 px-2 text-sm text-center text-gray-600">{item.unit}</td>
-              <td className="py-3 px-2 text-sm text-right text-gray-600">₹{item.unit_price.toFixed(2)}</td>
-              <td className="py-3 px-2 text-sm text-right font-semibold text-gray-900">₹{item.line_total.toFixed(2)}</td>
-            </tr>
-          ))}
+          {bill.bill_items.map((item: any, index: number) => {
+            const itemSubtotal = item.quantity * item.unit_price;
+            return (
+              <tr key={item.id} className="border-b border-gray-200">
+                <td className="py-3 px-2 text-sm text-gray-600">{index + 1}</td>
+                <td className="py-3 px-2 text-sm font-medium text-gray-900">{item.item_name}</td>
+                <td className="py-3 px-2 text-sm text-center text-gray-600">{item.hsn_code}</td>
+                <td className="py-3 px-2 text-sm text-center text-gray-600">{item.quantity}</td>
+                <td className="py-3 px-2 text-sm text-center text-gray-600">{item.unit}</td>
+                <td className="py-3 px-2 text-sm text-right text-gray-600">₹{item.unit_price.toFixed(2)}</td>
+                <td className="py-3 px-2 text-sm text-right font-semibold text-gray-900">₹{itemSubtotal.toFixed(2)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
