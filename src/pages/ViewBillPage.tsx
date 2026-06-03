@@ -81,7 +81,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
           </div>
           <div className="flex justify-between md:justify-end gap-4">
             <span className="text-sm font-semibold text-gray-500">Invoice Date:</span>
-            <span className="text-sm font-bold text-gray-900">{new Date(bill.bill_date).toLocaleDateString()}</span>
+            <span className="text-sm font-bold text-gray-900">{new Date(bill.bill_date).toLocaleDateString('en-GB')}</span>
           </div>
           {bill.po_number && (
             <div className="flex justify-between md:justify-end gap-4">

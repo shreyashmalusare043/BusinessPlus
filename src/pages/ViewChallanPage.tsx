@@ -83,7 +83,7 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
       <div className="flex justify-end gap-4">
         <span className="text-sm font-semibold text-gray-500">Date:</span>
         <span className="text-sm font-bold text-gray-900">
-          {new Date(challan.challan_date).toLocaleDateString()}
+          {new Date(challan.challan_date).toLocaleDateString('en-GB')}
         </span>
       </div>
 
