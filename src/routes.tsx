@@ -37,6 +37,7 @@ import TermsConditionsPage from './pages/TermsConditionsPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
 import DataSecurityPolicyPage from './pages/DataSecurityPolicyPage';
 import ThemeEditorPage from './pages/ThemeEditorPage';
+import CashMemoPage from './pages/CashMemoPage';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -145,6 +146,11 @@ const routes: RouteConfig[] = [
     element: <BillListPage />,
   },
   {
+    name: 'Cash Memo',
+    path: '/cash-memo',
+    element: <CashMemoPage />,
+  },
+  {
     name: 'Create Bill',
     path: '/bills/create',
     element: <CreateBillPage />,
@@ -199,6 +205,12 @@ const routes: RouteConfig[] = [
     name: 'Create Delivery Challan',
     path: '/delivery-challans/create',
     element: <CreateChallanPage />,
+    visible: false,
+  },
+  {
+    name: 'Edit Delivery Challan',
+    path: '/delivery-challans/:id/edit',
+    element: <CreateChallanPage isEdit={true} />,
     visible: false,
   },
   {

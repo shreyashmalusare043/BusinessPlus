@@ -26,6 +26,8 @@ import type {
   BillForm,
   PurchaseOrderForm,
   StockItemForm,
+  CashMemo,
+  CashMemoForm,
 } from '@/types';
 
 // ============ Profile APIs ============
@@ -1142,6 +1144,49 @@ export async function getReportData(startDate: string, endDate: string): Promise
   return result.sort((a, b) => a.period.localeCompare(b.period));
 }
 
+// ============ Cash Memo APIs ============
+export async function getMyCashMemos(): Promise<CashMemo[]> {
+  const { data, error } = await supabase
+    .from('cash_memos')
+    .select('*')
+    .order('transaction_date', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+export async function createCashMemo(memoData: CashMemoForm): Promise<CashMemo> {
+  const userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) throw new Error('User not authenticated');
+
+  const { data, error } = await supabase
+    .from('cash_memos')
+    .insert({ user_id: userId, ...memoData })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateCashMemo(memoId: string, memoData: CashMemoForm): Promise<CashMemo> {
+  const { data, error } = await supabase
+    .from('cash_memos')
+    .update({ ...memoData, updated_at: new Date().toISOString() })
+    .eq('id', memoId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteCashMemo(memoId: string): Promise<void> {
+  const { error } = await supabase.from('cash_memos').delete().eq('id', memoId);
+  if (error) throw error;
+}
+
 // ============ Work Logs APIs ============
 export async function getMyWorkLogs(limit = 100, offset = 0): Promise<any[]> {
   const { data, error } = await supabase
@@ -1523,6 +1568,35 @@ export async function createChallan(challanData: DeliveryChallanForm): Promise<D
   }
 
   return newChallan;
+}
+
+export async function updateChallan(challanId: string, challanData: DeliveryChallanForm): Promise<DeliveryChallan> {
+  const { items, ...challanInfo } = challanData;
+  const { data: challan, error: challanError } = await supabase
+    .from('delivery_challans')
+    .update({ ...challanInfo, updated_at: new Date().toISOString() })
+    .eq('id', challanId)
+    .select()
+    .single();
+
+  if (challanError) throw challanError;
+
+  const { error: deleteItemsError } = await supabase
+    .from('delivery_challan_items')
+    .delete()
+    .eq('challan_id', challanId);
+
+  if (deleteItemsError) throw deleteItemsError;
+
+  if (items && items.length > 0) {
+    const { error: itemsError } = await supabase
+      .from('delivery_challan_items')
+      .insert(items.map((item) => ({ challan_id: challanId, ...item })));
+
+    if (itemsError) throw itemsError;
+  }
+
+  return challan;
 }
 
 export async function deleteChallan(challanId: string): Promise<void> {

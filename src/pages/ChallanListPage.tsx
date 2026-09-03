@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getMyChallans, deleteChallan, checkSubscriptionStatus } from '@/db/api';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Eye, Trash2, Lock, Crown } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Lock, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import type { DeliveryChallan } from '@/types';
 
@@ -164,6 +164,13 @@ export default function ChallanListPage() {
                           onClick={() => navigate(`/delivery-challans/${challan.id}`)}
                         >
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/delivery-challans/${challan.id}/edit`)}
+                        >
+                          <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"

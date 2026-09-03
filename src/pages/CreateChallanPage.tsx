@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { createChallan, getMyCustomers, checkSubscriptionStatus } from '@/db/api';
+import { createChallan, getChallanById, getMyCustomers, checkSubscriptionStatus, updateChallan } from '@/db/api';
 import { Loader2, Plus, Trash2, Crown } from 'lucide-react';
 import type { DeliveryChallanForm, DeliveryChallanItemForm, Customer } from '@/types';
 
@@ -22,13 +22,14 @@ const purposeOptions = [
   { value: 'branch_transfer', label: 'Branch Transfer' },
 ];
 
-export default function CreateChallanPage() {
+export default function CreateChallanPage({ isEdit = false }: { isEdit?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [hasPremium, setHasPremium] = useState(false);
   const [checkingPremium, setCheckingPremium] = useState(true);
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
   const form = useForm<DeliveryChallanForm>({
     defaultValues: {
@@ -59,7 +60,33 @@ export default function CreateChallanPage() {
   useEffect(() => {
     checkPremium();
     loadCustomers();
-  }, []);
+    if (isEdit && id) loadChallan(id);
+  }, [isEdit, id]);
+
+  const loadChallan = async (challanId: string) => {
+    try {
+      const challan = await getChallanById(challanId);
+      form.reset({
+        challan_date: challan.challan_date,
+        place_of_supply: challan.place_of_supply,
+        party_name: challan.party_name,
+        party_address: challan.party_address || '',
+        party_gst: challan.party_gst || '',
+        party_state: challan.party_state || '',
+        purpose: challan.purpose,
+        items: challan.challan_items.map((item) => ({
+          item_name: item.item_name,
+          description: item.description || '',
+          hsn_code: item.hsn_code || '',
+          quantity: item.quantity,
+          unit: item.unit,
+        })),
+      });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to load delivery challan');
+      navigate('/delivery-challans');
+    }
+  };
 
   const checkPremium = async () => {
     try {
@@ -106,8 +133,8 @@ export default function CreateChallanPage() {
 
     setLoading(true);
     try {
-      const challan = await createChallan(data);
-      toast.success('Delivery challan created successfully');
+      const challan = isEdit && id ? await updateChallan(id, data) : await createChallan(data);
+      toast.success(isEdit ? 'Delivery challan updated successfully' : 'Delivery challan created successfully');
       navigate(`/delivery-challans/${challan.id}`);
     } catch (error: any) {
       toast.error(error.message || 'Failed to create delivery challan');
@@ -129,7 +156,7 @@ export default function CreateChallanPage() {
   if (!hasPremium) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Create Delivery Challan</h1>
+        <h1 className="text-3xl font-bold">{isEdit ? 'Edit Delivery Challan' : 'Create Delivery Challan'}</h1>
         <Alert className="border-orange-500 bg-orange-50 dark:bg-orange-950">
           <Crown className="h-4 w-4 text-orange-600" />
           <AlertTitle className="text-orange-900 dark:text-orange-100">Premium Feature</AlertTitle>

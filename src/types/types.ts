@@ -431,6 +431,32 @@ export interface ExpenseForm {
   description: string;
 }
 
+export type CashMemoType = 'cash_in' | 'cash_out';
+export type CashInPurpose = 'Payment' | 'Scrap' | 'Advance' | 'Other';
+export type CashOutPurpose = 'Expense' | 'Investment' | 'Advance' | 'Other';
+
+export interface CashMemo {
+  id: string;
+  user_id: string;
+  transaction_type: CashMemoType;
+  transaction_date: string;
+  person_company_name: string;
+  purpose: string;
+  amount: number;
+  remark: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CashMemoForm {
+  transaction_type: CashMemoType;
+  transaction_date: string;
+  person_company_name: string;
+  purpose: string;
+  amount: number;
+  remark: string;
+}
+
 export type WorkOrderStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 
 export interface WorkOrder {

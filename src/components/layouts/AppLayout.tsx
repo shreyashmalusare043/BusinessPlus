@@ -18,6 +18,7 @@ import {
   Crown,
   Wallet,
   Briefcase,
+  WalletCards,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { name: 'Suppliers', path: '/suppliers', icon: <Truck className="h-5 w-5" /> },
   { name: 'Work Orders', path: '/work-orders', icon: <Briefcase className="h-5 w-5" /> },
   { name: 'Bills', path: '/bills', icon: <FileText className="h-5 w-5" /> },
+  { name: 'Cash Memo', path: '/cash-memo', icon: <WalletCards className="h-5 w-5" /> },
   { name: 'Purchase Orders', path: '/purchase-orders', icon: <ShoppingCart className="h-5 w-5" /> },
   { name: 'Expenses', path: '/expenses', icon: <Wallet className="h-5 w-5" /> },
   { name: 'Delivery Challan', path: '/delivery-challans', icon: <FileCheck className="h-5 w-5" /> },
