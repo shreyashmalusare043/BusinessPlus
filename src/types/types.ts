@@ -147,6 +147,8 @@ export interface PurchaseOrder {
   supplier_gst_number: string | null;
   classification: PurchaseOrderClassification;
   status: 'pending' | 'confirmed' | 'revised';
+  payment_status: 'paid' | 'unpaid';
+  payment_confirmed_at: string | null;
   subtotal: number;
   total_cgst: number;
   total_sgst: number;

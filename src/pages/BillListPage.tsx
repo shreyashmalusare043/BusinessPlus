@@ -1,19 +1,20 @@
-import { useEffect, useState, useMemo } from 'react';
+import { ChevronDown, Download, Plus, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { getMyBills, updateBillPaymentStatus, getBillsByDateRange, getMyCustomers } from '@/db/api';
-import { supabase } from '@/db/supabase';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Download, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getBillsByDateRange, getBillsByPaymentDateRange, getMyBills, getMyCustomers, updateBillPaymentStatus } from '@/db/api';
+import { supabase } from '@/db/supabase';
 import type { Bill, Customer } from '@/types';
 
 export default function BillListPage() {
@@ -23,9 +24,14 @@ export default function BillListPage() {
   const [exportLoading, setExportLoading] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [exportCompanies, setExportCompanies] = useState<string[]>([]);
+  const [exportPaymentStatus, setExportPaymentStatus] = useState<'all' | 'paid' | 'pending' | 'unpaid'>('all');
+  const [filterFromDate, setFilterFromDate] = useState('');
+  const [filterToDate, setFilterToDate] = useState('');
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState<'all' | 'paid' | 'pending' | 'unpaid'>('all');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCompany, setSelectedCompany] = useState<string>('all');
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,9 +63,31 @@ export default function BillListPage() {
   const filteredBills = useMemo(() => {
     let filtered = bills;
 
-    // Filter by company
-    if (selectedCompany !== 'all') {
-      filtered = filtered.filter(bill => bill.customer_name === selectedCompany);
+    // Filter by selected companies
+    if (selectedCompanies.length > 0) {
+      filtered = filtered.filter(bill => selectedCompanies.includes(bill.customer_name));
+    }
+
+    if (filterPaymentStatus !== 'all') {
+      filtered = filtered.filter(bill => bill.payment_status === filterPaymentStatus);
+    }
+
+    // Paid bills use payment_confirmed_at; other statuses use the bill date.
+    if (filterFromDate) {
+      filtered = filtered.filter(bill => {
+        const filterDate = filterPaymentStatus === 'paid'
+          ? bill.payment_confirmed_at?.slice(0, 10)
+          : bill.bill_date;
+        return Boolean(filterDate && filterDate >= filterFromDate);
+      });
+    }
+    if (filterToDate) {
+      filtered = filtered.filter(bill => {
+        const filterDate = filterPaymentStatus === 'paid'
+          ? bill.payment_confirmed_at?.slice(0, 10)
+          : bill.bill_date;
+        return Boolean(filterDate && filterDate <= filterToDate);
+      });
     }
 
     // Search by bill number, customer name, or amount
@@ -73,11 +101,30 @@ export default function BillListPage() {
     }
 
     return filtered;
-  }, [bills, selectedCompany, searchQuery]);
+  }, [bills, selectedCompanies, searchQuery, filterFromDate, filterToDate, filterPaymentStatus]);
 
   const handleClearFilters = () => {
     setSearchQuery('');
-    setSelectedCompany('all');
+    setSelectedCompanies([]);
+    setFilterFromDate('');
+    setFilterToDate('');
+    setFilterPaymentStatus('all');
+  };
+
+  const toggleCompany = (companyName: string) => {
+    setSelectedCompanies(current =>
+      current.includes(companyName)
+        ? current.filter(company => company !== companyName)
+        : [...current, companyName]
+    );
+  };
+
+  const toggleExportCompany = (companyName: string) => {
+    setExportCompanies(current =>
+      current.includes(companyName)
+        ? current.filter(company => company !== companyName)
+        : [...current, companyName]
+    );
   };
 
   const handlePaymentStatusChange = async (billId: string, status: 'pending' | 'paid' | 'unpaid') => {
@@ -117,6 +164,18 @@ export default function BillListPage() {
     }
   };
 
+  const handlePaymentDateChange = async (billId: string, paymentDate: string) => {
+    if (!paymentDate) return;
+
+    try {
+      await updateBillPaymentStatus(billId, 'paid', paymentDate);
+      await loadBills();
+      toast.success('Payment date updated');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update payment date');
+    }
+  };
+
   const handleExport = async () => {
     if (!startDate || !endDate) {
       toast.error('Please select both start and end dates');
@@ -130,10 +189,17 @@ export default function BillListPage() {
 
     setExportLoading(true);
     try {
-      const billsData = await getBillsByDateRange(startDate, endDate);
+      const billsInDateRange = exportPaymentStatus === 'paid'
+        ? await getBillsByPaymentDateRange(startDate, endDate)
+        : await getBillsByDateRange(startDate, endDate);
+      const billsData = billsInDateRange.filter((bill) => {
+        const matchesCompany = exportCompanies.length === 0 || exportCompanies.includes(bill.customer_name);
+        const matchesPaymentStatus = exportPaymentStatus === 'all' || bill.payment_status === exportPaymentStatus;
+        return matchesCompany && matchesPaymentStatus;
+      });
 
       if (billsData.length === 0) {
-        toast.info('No bills found in the selected date range');
+        toast.info('No bills found for the selected export filters');
         setExportLoading(false);
         return;
       }
@@ -142,82 +208,111 @@ export default function BillListPage() {
       const { getMyCompany } = await import('@/db/api');
       const company = await getMyCompany();
 
-      // Prepare data for Excel export
-      const exportData = billsData.flatMap(bill =>
-        bill.bill_items.map((item: any, index: number) => ({
-          'Sr. No': index + 1,
-          'Bill No': bill.bill_no,
-          'Bill Date': new Date(bill.bill_date).toLocaleDateString('en-IN'),
-          'Customer Name': bill.customer_name,
-          'Item Description': item.item_name,
-          'HSN/SAC Code': item.hsn_code,
-          'Quantity': item.quantity,
-          'Unit Price (₹)': item.unit_price.toFixed(2),
-          'Taxable Value (₹)': (item.quantity * item.unit_price).toFixed(2),
-          'CGST @ 9% (₹)': item.cgst_amount.toFixed(2),
-          'SGST @ 9% (₹)': item.sgst_amount.toFixed(2),
-          'Total GST (₹)': (item.cgst_amount + item.sgst_amount).toFixed(2),
-          'Line Total (₹)': item.line_total.toFixed(2),
-          'Bill Grand Total (₹)': bill.grand_total.toFixed(2),
-          'Payment Status': bill.payment_status.toUpperCase(),
-        }))
-      );
+      // Keep item rows separate, but merge bill-level fields across the bill's item rows.
+      const exportData: Record<string, string | number>[] = [];
+      const billMergeRanges: { start: number; end: number; columns: number[] }[] = [];
+      let serialNumber = 1;
+
+      billsData.forEach((bill) => {
+        const items = bill.bill_items.length > 0 ? bill.bill_items : [{
+          item_name: '-', hsn_code: '', quantity: 0, unit: '', unit_price: 0,
+          cgst_amount: 0, sgst_amount: 0, igst_amount: 0, line_total: 0,
+        }];
+        const startRow = exportData.length;
+        items.forEach((item: any) => {
+          const basicAmount = Number(item.quantity || 0) * Number(item.unit_price || 0);
+          exportData.push({
+            'Sr. No': serialNumber++,
+            'Party Name': bill.customer_name,
+            'GST No.': bill.customer_gst_number || '',
+            'Invoice No.': bill.bill_no,
+            Date: new Date(bill.bill_date).toLocaleDateString('en-IN'),
+            'HSN Code': item.hsn_code || '',
+            Qty: Number(item.quantity || 0),
+            Unit: item.unit || '',
+            'Rate (₹)': Number(item.unit_price || 0).toFixed(2),
+            'Basic Amt (₹)': basicAmount.toFixed(2),
+            'Freight / Other Chrg (₹)': '0.00',
+            'Total Basic Amt (₹)': Number(bill.subtotal || 0).toFixed(2),
+            'GST %': '18%',
+            'IGST (₹)': Number(bill.total_igst || 0).toFixed(2),
+            'CGST (₹)': Number(bill.total_cgst || 0).toFixed(2),
+            'SGST (₹)': Number(bill.total_sgst || 0).toFixed(2),
+            'Total (₹)': Number(bill.grand_total || 0).toFixed(2),
+          });
+        });
+
+        if (items.length > 1) {
+          billMergeRanges.push({
+            start: startRow,
+            end: exportData.length - 1,
+            columns: [1, 2, 3, 4, 11, 12, 13, 14, 15, 16],
+          });
+        }
+      });
 
       // Create workbook
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet([]);
 
       // Add title
-      XLSX.utils.sheet_add_aoa(ws, [['MONTHLY BILLS REPORT']], { origin: 'A1' });
+      XLSX.utils.sheet_add_aoa(ws, [['BILL DETAILS REPORT']], { origin: 'A1' });
       
       // Add company name and date range
       XLSX.utils.sheet_add_aoa(ws, [[`Company: ${company?.company_name || 'N/A'}`]], { origin: 'A2' });
       XLSX.utils.sheet_add_aoa(ws, [[`GSTIN: ${company?.gst_number || 'N/A'}`]], { origin: 'A3' });
       XLSX.utils.sheet_add_aoa(ws, [[`Period: ${new Date(startDate).toLocaleDateString('en-IN')} to ${new Date(endDate).toLocaleDateString('en-IN')}`]], { origin: 'A4' });
-      XLSX.utils.sheet_add_aoa(ws, [[`Generated on: ${new Date().toLocaleString('en-IN')}`]], { origin: 'A5' });
+      XLSX.utils.sheet_add_aoa(ws, [[`Companies: ${exportCompanies.length > 0 ? exportCompanies.join(', ') : 'All Companies'}`]], { origin: 'A5' });
+      XLSX.utils.sheet_add_aoa(ws, [[`Payment Status: ${exportPaymentStatus === 'all' ? 'All' : exportPaymentStatus.toUpperCase()}`]], { origin: 'A6' });
+      XLSX.utils.sheet_add_aoa(ws, [[`Generated on: ${new Date().toLocaleString('en-IN')}`]], { origin: 'A7' });
       
       // Add empty row
-      XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A6' });
+      XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A8' });
 
-      // Add data starting from row 7
-      XLSX.utils.sheet_add_json(ws, exportData, { origin: 'A7' });
+      // Add data starting from row 9
+      XLSX.utils.sheet_add_json(ws, exportData, { origin: 'A9' });
+
+      // Merge bill-level values vertically across all item rows for that bill.
+      billMergeRanges.forEach(({ start, end, columns }) => {
+        columns.forEach((column) => {
+          ws['!merges'] = ws['!merges'] || [];
+          ws['!merges'].push({
+            s: { r: 9 + start, c: column },
+            e: { r: 9 + end, c: column },
+          });
+        });
+      });
 
       // Set column widths
       ws['!cols'] = [
-        { wch: 8 },  // Sr. No
-        { wch: 15 }, // Bill No
-        { wch: 12 }, // Bill Date
-        { wch: 25 }, // Customer Name
-        { wch: 30 }, // Item Description
-        { wch: 12 }, // HSN/SAC
-        { wch: 10 }, // Quantity
-        { wch: 15 }, // Unit Price
-        { wch: 18 }, // Taxable Value
-        { wch: 15 }, // CGST
-        { wch: 15 }, // SGST
-        { wch: 15 }, // Total GST
-        { wch: 15 }, // Line Total
-        { wch: 18 }, // Grand Total
-        { wch: 15 }, // Payment Status
+        { wch: 8 }, { wch: 28 }, { wch: 18 }, { wch: 16 }, { wch: 13 },
+        { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 13 }, { wch: 16 },
+        { wch: 22 }, { wch: 18 }, { wch: 10 }, { wch: 14 }, { wch: 14 },
+        { wch: 14 }, { wch: 16 },
       ];
 
       // Merge cells for title
       ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 14 } }, // Title row
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 16 } }, // Title row
+        ...(ws['!merges'] || []),
       ];
+      ws['!autofilter'] = { ref: `A9:Q${9 + exportData.length}` };
+      ws['!freeze'] = { xSplit: 0, ySplit: 9 };
 
       // Add summary at the bottom
-      const lastRow = 7 + exportData.length + 2;
+      const lastRow = 9 + exportData.length + 2;
       const totalBills = billsData.length;
       const totalAmount = billsData.reduce((sum, bill) => sum + bill.grand_total, 0);
       const totalCGST = billsData.reduce((sum, bill) => sum + bill.total_cgst, 0);
       const totalSGST = billsData.reduce((sum, bill) => sum + bill.total_sgst, 0);
+      const totalIGST = billsData.reduce((sum, bill) => sum + (bill.total_igst || 0), 0);
 
       XLSX.utils.sheet_add_aoa(ws, [['SUMMARY']], { origin: `A${lastRow}` });
       XLSX.utils.sheet_add_aoa(ws, [[`Total Bills: ${totalBills}`]], { origin: `A${lastRow + 1}` });
       XLSX.utils.sheet_add_aoa(ws, [[`Total CGST: ₹${totalCGST.toFixed(2)}`]], { origin: `A${lastRow + 2}` });
       XLSX.utils.sheet_add_aoa(ws, [[`Total SGST: ₹${totalSGST.toFixed(2)}`]], { origin: `A${lastRow + 3}` });
-      XLSX.utils.sheet_add_aoa(ws, [[`Total Amount: ₹${totalAmount.toFixed(2)}`]], { origin: `A${lastRow + 4}` });
+      XLSX.utils.sheet_add_aoa(ws, [[`Total IGST: ₹${totalIGST.toFixed(2)}`]], { origin: `A${lastRow + 4}` });
+      XLSX.utils.sheet_add_aoa(ws, [[`Total Amount: ₹${totalAmount.toFixed(2)}`]], { origin: `A${lastRow + 5}` });
 
       XLSX.utils.book_append_sheet(wb, ws, 'Bills Report');
 
@@ -304,6 +399,50 @@ export default function BillListPage() {
                     className="text-sm"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label>Filter by Company</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between text-sm font-normal">
+                        <span className="truncate">
+                          {exportCompanies.length === 0
+                            ? 'All Companies'
+                            : `${exportCompanies.length} compan${exportCompanies.length === 1 ? 'y' : 'ies'} selected`}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56">
+                      {customers.length === 0 ? (
+                        <DropdownMenuCheckboxItem disabled>No companies available</DropdownMenuCheckboxItem>
+                      ) : (
+                        customers.map((customer) => (
+                          <DropdownMenuCheckboxItem
+                            key={customer.id}
+                            checked={exportCompanies.includes(customer.company_name)}
+                            onCheckedChange={() => toggleExportCompany(customer.company_name)}
+                          >
+                            {customer.company_name}
+                          </DropdownMenuCheckboxItem>
+                        ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="export-payment-status">Payment Status</Label>
+                  <Select value={exportPaymentStatus} onValueChange={(value) => setExportPaymentStatus(value as typeof exportPaymentStatus)}>
+                    <SelectTrigger id="export-payment-status" className="text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Bills</SelectItem>
+                      <SelectItem value="paid">Paid Bills</SelectItem>
+                      <SelectItem value="pending">Pending Bills</SelectItem>
+                      <SelectItem value="unpaid">Unpaid Bills</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Button onClick={handleExport} disabled={exportLoading} className="w-full">
                   {exportLoading ? 'Exporting...' : 'Export to Excel'}
                 </Button>
@@ -324,7 +463,7 @@ export default function BillListPage() {
           <CardTitle className="text-lg sm:text-xl">Search & Filter</CardTitle>
         </CardHeader>
         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Search Input */}
             <div className="flex-1">
               <Label htmlFor="search" className="text-xs sm:text-sm mb-2 block">Search Bills</Label>
@@ -342,26 +481,83 @@ export default function BillListPage() {
             </div>
 
             {/* Company Filter */}
-            <div className="flex-1 sm:max-w-xs">
+            <div className="flex-1">
               <Label htmlFor="company-filter" className="text-xs sm:text-sm mb-2 block">Filter by Company</Label>
-              <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                <SelectTrigger id="company-filter" className="text-sm">
-                  <SelectValue placeholder="All Companies" />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button id="company-filter" variant="outline" className="w-full justify-between text-sm font-normal">
+                    <span className="truncate">
+                      {selectedCompanies.length === 0
+                        ? 'All Companies'
+                        : `${selectedCompanies.length} compan${selectedCompanies.length === 1 ? 'y' : 'ies'} selected`}
+                    </span>
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56">
+                  {customers.length === 0 ? (
+                    <DropdownMenuCheckboxItem disabled>No companies available</DropdownMenuCheckboxItem>
+                  ) : (
+                    customers.map((customer) => (
+                      <DropdownMenuCheckboxItem
+                        key={customer.id}
+                        checked={selectedCompanies.includes(customer.company_name)}
+                        onCheckedChange={() => toggleCompany(customer.company_name)}
+                      >
+                        {customer.company_name}
+                      </DropdownMenuCheckboxItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="flex-1">
+              <Label htmlFor="filter-from-date" className="text-xs sm:text-sm mb-2 block">
+                {filterPaymentStatus === 'paid' ? 'Paid From Date' : 'From Date'}
+              </Label>
+              <Input
+                id="filter-from-date"
+                type="date"
+                value={filterFromDate}
+                max={filterToDate || undefined}
+                onChange={(e) => setFilterFromDate(e.target.value)}
+                className="text-sm"
+              />
+            </div>
+
+            <div className="flex-1">
+              <Label htmlFor="filter-to-date" className="text-xs sm:text-sm mb-2 block">
+                {filterPaymentStatus === 'paid' ? 'Paid To Date' : 'To Date'}
+              </Label>
+              <Input
+                id="filter-to-date"
+                type="date"
+                value={filterToDate}
+                min={filterFromDate || undefined}
+                onChange={(e) => setFilterToDate(e.target.value)}
+                className="text-sm"
+              />
+            </div>
+
+            <div className="flex-1">
+              <Label htmlFor="filter-payment-status" className="text-xs sm:text-sm mb-2 block">Payment Status</Label>
+              <Select value={filterPaymentStatus} onValueChange={(value) => setFilterPaymentStatus(value as typeof filterPaymentStatus)}>
+                <SelectTrigger id="filter-payment-status" className="text-sm">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Companies</SelectItem>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.company_name}>
-                      {customer.company_name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="all">All Bills</SelectItem>
+                  <SelectItem value="paid">Paid Bills</SelectItem>
+                  <SelectItem value="pending">Pending Bills</SelectItem>
+                  <SelectItem value="unpaid">Unpaid Bills</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Clear Filters Button */}
-            {(searchQuery || selectedCompany !== 'all') && (
-              <div className="flex items-end">
+            {(searchQuery || selectedCompanies.length > 0 || filterFromDate || filterToDate || filterPaymentStatus !== 'all') && (
+              <div className="flex items-end lg:col-span-4">
                 <Button
                   variant="outline"
                   size="sm"
@@ -376,7 +572,7 @@ export default function BillListPage() {
           </div>
 
           {/* Results Count */}
-          {(searchQuery || selectedCompany !== 'all') && (
+          {(searchQuery || selectedCompanies.length > 0 || filterFromDate || filterToDate || filterPaymentStatus !== 'all') && (
             <div className="mt-3 sm:mt-4">
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Showing {filteredBills.length} of {bills.length} bills
@@ -418,6 +614,7 @@ export default function BillListPage() {
                     <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Total Amount</TableHead>
                     <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">GST Amount</TableHead>
                     <TableHead className="whitespace-nowrap text-xs sm:text-sm">Payment Status</TableHead>
+                    <TableHead className="whitespace-nowrap text-xs sm:text-sm">Paid Date</TableHead>
                     <TableHead className="whitespace-nowrap text-xs sm:text-sm">Payment Reminder</TableHead>
                     <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Actions</TableHead>
                   </TableRow>
@@ -456,6 +653,17 @@ export default function BillListPage() {
                             </SelectItem>
                           </SelectContent>
                         </Select>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs sm:text-sm">
+                        {bill.payment_status === 'paid' ? (
+                          <Input
+                            type="date"
+                            value={bill.payment_confirmed_at?.slice(0, 10) || ''}
+                            onChange={(event) => handlePaymentDateChange(bill.id, event.target.value)}
+                            className="h-8 w-36 text-xs sm:text-sm"
+                            aria-label={`Paid date for bill ${bill.bill_no}`}
+                          />
+                        ) : '-'}
                       </TableCell>
                       <TableCell>
                         <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">

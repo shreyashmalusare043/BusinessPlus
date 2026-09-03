@@ -465,10 +465,22 @@ export async function updateBill(billId: string, billData: BillForm, oldBillItem
   return bill;
 }
 
-export async function updateBillPaymentStatus(billId: string, status: 'pending' | 'paid' | 'unpaid'): Promise<void> {
+export async function updateBillPaymentStatus(
+  billId: string,
+  status: 'pending' | 'paid' | 'unpaid',
+  paymentDate?: string
+): Promise<void> {
+  const paymentConfirmedAt = status === 'paid'
+    ? new Date(`${paymentDate || new Date().toISOString().slice(0, 10)}T12:00:00`).toISOString()
+    : null;
+
   const { error } = await supabase
     .from('bills')
-    .update({ payment_status: status, updated_at: new Date().toISOString() })
+    .update({
+      payment_status: status,
+      payment_confirmed_at: paymentConfirmedAt,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', billId);
 
   if (error) throw error;
@@ -506,6 +518,32 @@ export async function getBillsByDateRange(startDate: string, endDate: string): P
   }));
 }
 
+export async function getBillsByPaymentDateRange(startDate: string, endDate: string): Promise<BillWithItems[]> {
+  const { data: bills, error: billsError } = await supabase
+    .from('bills')
+    .select('*')
+    .eq('payment_status', 'paid')
+    .gte('payment_confirmed_at', `${startDate}T00:00:00.000Z`)
+    .lte('payment_confirmed_at', `${endDate}T23:59:59.999Z`)
+    .order('payment_confirmed_at', { ascending: true });
+
+  if (billsError) throw billsError;
+  if (!bills || bills.length === 0) return [];
+
+  const billIds = bills.map((bill) => bill.id);
+  const { data: items, error: itemsError } = await supabase
+    .from('bill_items')
+    .select('*')
+    .in('bill_id', billIds);
+
+  if (itemsError) throw itemsError;
+
+  return bills.map((bill) => ({
+    ...bill,
+    bill_items: Array.isArray(items) ? items.filter((item) => item.bill_id === bill.id) : [],
+  }));
+}
+
 // ============ Purchase Order APIs ============
 export async function getMyPurchaseOrders(limit = 100, offset = 0): Promise<PurchaseOrder[]> {
   const { data, error } = await supabase
@@ -518,6 +556,27 @@ export async function getMyPurchaseOrders(limit = 100, offset = 0): Promise<Purc
 
   if (error) throw error;
   return Array.isArray(data) ? data : [];
+}
+
+export async function updatePurchaseOrderPaymentStatus(
+  poId: string,
+  paymentStatus: 'paid' | 'unpaid',
+  paymentDate?: string
+): Promise<void> {
+  const paymentConfirmedAt = paymentStatus === 'paid'
+    ? new Date(`${paymentDate || new Date().toISOString().slice(0, 10)}T12:00:00`).toISOString()
+    : null;
+
+  const { error } = await supabase
+    .from('purchase_orders')
+    .update({
+      payment_status: paymentStatus,
+      payment_confirmed_at: paymentConfirmedAt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', poId);
+
+  if (error) throw error;
 }
 
 export async function getRecentPurchaseOrders(limit = 5): Promise<PurchaseOrder[]> {
@@ -978,7 +1037,7 @@ export async function getReportData(startDate: string, endDate: string): Promise
   // Get bills in date range with GST details
   const { data: bills, error: billsError } = await supabase
     .from('bills')
-    .select('bill_date, grand_total, total_cgst, total_sgst, subtotal')
+    .select('bill_date, grand_total, total_cgst, total_sgst, total_igst, subtotal')
     .eq('user_id', userId)
     .gte('bill_date', startDate)
     .lte('bill_date', endDate)
@@ -1030,7 +1089,7 @@ export async function getReportData(startDate: string, endDate: string): Promise
       purchasesWithoutGst: 0
     };
     existing.sales += Number(bill.grand_total);
-    existing.salesGst += Number(bill.total_cgst) + Number(bill.total_sgst);
+    existing.salesGst += Number(bill.total_cgst || 0) + Number(bill.total_sgst || 0) + Number(bill.total_igst || 0);
     existing.salesWithoutGst += Number(bill.subtotal);
     dataMap.set(bill.bill_date, existing);
   });

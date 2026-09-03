@@ -1,28 +1,29 @@
-import { useState } from 'react';
+import { ChevronDown, Loader2, TrendingDown, TrendingUp } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getReportData } from '@/db/api';
-import { 
-  BarChart, 
-  Bar, 
-  LineChart, 
-  Line, 
-  PieChart, 
-  Pie, 
-  Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
-} from 'recharts';
-import { toast } from 'sonner';
-import { Loader2, TrendingUp, TrendingDown } from 'lucide-react';
-import type { ReportData, ReportType } from '@/types';
+import { getBillsByDateRange, getMyCustomers, getMySuppliers, getPurchaseOrdersByDateRange, getReportData } from '@/db/api';
+import type { Customer, ReportData, ReportType, Supplier } from '@/types';
 
 const COLORS = ['#667eea', '#764ba2', '#f093fb', '#4facfe'];
 
@@ -31,7 +32,24 @@ export default function ReportsPage() {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [reportData, setReportData] = useState<ReportData[]>([]);
+  const [reportBills, setReportBills] = useState<Awaited<ReturnType<typeof getBillsByDateRange>>>([]);
+  const [reportPurchaseOrders, setReportPurchaseOrders] = useState<Awaited<ReturnType<typeof getPurchaseOrdersByDateRange>>>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
+  const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    Promise.all([getMyCustomers(), getMySuppliers()])
+      .then(([customerData, supplierData]) => {
+        setCustomers(customerData);
+        setSuppliers(supplierData);
+      })
+      .catch((error) => {
+        console.error('Failed to load report companies:', error);
+      });
+  }, []);
 
   const getDateRange = (): { startDate: string; endDate: string } => {
     const today = new Date();
@@ -70,8 +88,14 @@ export default function ReportsPage() {
     try {
       const { startDate, endDate } = getDateRange();
       setLoading(true);
-      const data = await getReportData(startDate, endDate);
+      const [data, bills, purchaseOrders] = await Promise.all([
+        getReportData(startDate, endDate),
+        getBillsByDateRange(startDate, endDate),
+        getPurchaseOrdersByDateRange(startDate, endDate),
+      ]);
       setReportData(data);
+      setReportBills(bills);
+      setReportPurchaseOrders(purchaseOrders);
       toast.success('Report generated successfully');
     } catch (error: any) {
       toast.error(error.message || 'Failed to generate report');
@@ -99,6 +123,64 @@ export default function ReportsPage() {
   const totalSalesWithoutGst = reportData.reduce((sum, item) => sum + item.sales_without_gst, 0);
   const totalPurchasesWithoutGst = reportData.reduce((sum, item) => sum + item.purchases_without_gst, 0);
   const netProfit = totalSales - totalPurchases - totalExpenses;
+
+  const filteredReportBills = useMemo(() => {
+    if (selectedCompanies.length === 0) return reportBills;
+    return reportBills.filter((bill) => selectedCompanies.includes(bill.customer_name));
+  }, [reportBills, selectedCompanies]);
+
+  const companySummaries = useMemo(() => {
+    const summaries = new Map<string, { billCount: number; amount: number; gst: number; paid: number; pending: number }>();
+
+    filteredReportBills.forEach((bill) => {
+      const summary = summaries.get(bill.customer_name) || { billCount: 0, amount: 0, gst: 0, paid: 0, pending: 0 };
+      summary.billCount += 1;
+      summary.amount += Number(bill.grand_total || 0);
+      summary.gst += Number(bill.total_cgst || 0) + Number(bill.total_sgst || 0) + Number(bill.total_igst || 0);
+      if (bill.payment_status === 'paid') summary.paid += 1;
+      else summary.pending += 1;
+      summaries.set(bill.customer_name, summary);
+    });
+
+    return Array.from(summaries, ([company, summary]) => ({ company, ...summary }));
+  }, [filteredReportBills]);
+
+  const filteredReportPurchaseOrders = useMemo(() => {
+    if (selectedSuppliers.length === 0) return reportPurchaseOrders;
+    return reportPurchaseOrders.filter((purchaseOrder) => selectedSuppliers.includes(purchaseOrder.supplier_name));
+  }, [reportPurchaseOrders, selectedSuppliers]);
+
+  const supplierSummaries = useMemo(() => {
+    const summaries = new Map<string, { orderCount: number; amount: number; gst: number; paid: number; unpaid: number }>();
+
+    filteredReportPurchaseOrders.forEach((purchaseOrder) => {
+      const summary = summaries.get(purchaseOrder.supplier_name) || { orderCount: 0, amount: 0, gst: 0, paid: 0, unpaid: 0 };
+      summary.orderCount += 1;
+      summary.amount += Number(purchaseOrder.grand_total || 0);
+      summary.gst += Number(purchaseOrder.total_cgst || 0) + Number(purchaseOrder.total_sgst || 0);
+      if (purchaseOrder.payment_status === 'paid') summary.paid += 1;
+      else summary.unpaid += 1;
+      summaries.set(purchaseOrder.supplier_name, summary);
+    });
+
+    return Array.from(summaries, ([supplier, summary]) => ({ supplier, ...summary }));
+  }, [filteredReportPurchaseOrders]);
+
+  const toggleCompany = (companyName: string) => {
+    setSelectedCompanies((current) =>
+      current.includes(companyName)
+        ? current.filter((company) => company !== companyName)
+        : [...current, companyName]
+    );
+  };
+
+  const toggleSupplier = (supplierName: string) => {
+    setSelectedSuppliers((current) =>
+      current.includes(supplierName)
+        ? current.filter((supplier) => supplier !== supplierName)
+        : [...current, supplierName]
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -146,6 +228,68 @@ export default function ReportsPage() {
               </>
             )}
 
+            <div className="space-y-2">
+              <Label>Filter by Company</Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between font-normal">
+                    <span className="truncate">
+                      {selectedCompanies.length === 0
+                        ? 'All Companies'
+                        : `${selectedCompanies.length} compan${selectedCompanies.length === 1 ? 'y' : 'ies'} selected`}
+                    </span>
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56">
+                  {customers.length === 0 ? (
+                    <DropdownMenuCheckboxItem disabled>No companies available</DropdownMenuCheckboxItem>
+                  ) : (
+                    customers.map((customer) => (
+                      <DropdownMenuCheckboxItem
+                        key={customer.id}
+                        checked={selectedCompanies.includes(customer.company_name)}
+                        onCheckedChange={() => toggleCompany(customer.company_name)}
+                      >
+                        {customer.company_name}
+                      </DropdownMenuCheckboxItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Filter Purchases by Supplier</Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between font-normal">
+                    <span className="truncate">
+                      {selectedSuppliers.length === 0
+                        ? 'All Suppliers'
+                        : `${selectedSuppliers.length} supplier${selectedSuppliers.length === 1 ? '' : 's'} selected`}
+                    </span>
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56">
+                  {suppliers.length === 0 ? (
+                    <DropdownMenuCheckboxItem disabled>No suppliers available</DropdownMenuCheckboxItem>
+                  ) : (
+                    suppliers.map((supplier) => (
+                      <DropdownMenuCheckboxItem
+                        key={supplier.id}
+                        checked={selectedSuppliers.includes(supplier.company_name)}
+                        onCheckedChange={() => toggleSupplier(supplier.company_name)}
+                      >
+                        {supplier.company_name}
+                      </DropdownMenuCheckboxItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             <div className="flex items-end">
               <Button onClick={handleGenerateReport} disabled={loading} className="w-full">
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -158,6 +302,82 @@ export default function ReportsPage() {
 
       {reportData.length > 0 && (
         <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Company-wise Bill Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {companySummaries.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No bills found for the selected companies and date range.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left">
+                        <th className="px-3 py-2 font-medium">Company</th>
+                        <th className="px-3 py-2 text-right font-medium">Total Bills</th>
+                        <th className="px-3 py-2 text-right font-medium">Total Amount</th>
+                        <th className="px-3 py-2 text-right font-medium">GST (18%)</th>
+                        <th className="px-3 py-2 text-right font-medium">Paid</th>
+                        <th className="px-3 py-2 text-right font-medium">Pending</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {companySummaries.map((summary) => (
+                        <tr key={summary.company} className="border-b last:border-0">
+                          <td className="px-3 py-2 font-medium">{summary.company}</td>
+                          <td className="px-3 py-2 text-right">{summary.billCount}</td>
+                          <td className="px-3 py-2 text-right">₹{summary.amount.toFixed(2)}</td>
+                          <td className="px-3 py-2 text-right">₹{summary.gst.toFixed(2)}</td>
+                          <td className="px-3 py-2 text-right text-green-600">{summary.paid}</td>
+                          <td className="px-3 py-2 text-right text-orange-600">{summary.pending}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Company-wise Purchase Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {supplierSummaries.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No purchase orders found for the selected suppliers and date range.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left">
+                        <th className="px-3 py-2 font-medium">Company / Supplier</th>
+                        <th className="px-3 py-2 text-right font-medium">Total POs</th>
+                        <th className="px-3 py-2 text-right font-medium">Total Amount</th>
+                        <th className="px-3 py-2 text-right font-medium">GST (18%)</th>
+                        <th className="px-3 py-2 text-right font-medium">Paid</th>
+                        <th className="px-3 py-2 text-right font-medium">Unpaid</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {supplierSummaries.map((summary) => (
+                        <tr key={summary.supplier} className="border-b last:border-0">
+                          <td className="px-3 py-2 font-medium">{summary.supplier}</td>
+                          <td className="px-3 py-2 text-right">{summary.orderCount}</td>
+                          <td className="px-3 py-2 text-right">₹{summary.amount.toFixed(2)}</td>
+                          <td className="px-3 py-2 text-right">₹{summary.gst.toFixed(2)}</td>
+                          <td className="px-3 py-2 text-right text-green-600">{summary.paid}</td>
+                          <td className="px-3 py-2 text-right text-orange-600">{summary.unpaid}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -324,8 +544,8 @@ export default function ReportsPage() {
                   <PieChart>
                     <Pie
                       data={[
-                        { name: 'Sales GST', value: totalSalesGst },
-                        { name: 'Purchases GST', value: totalPurchasesGst },
+                        { name: 'Sales GST (18%)', value: totalSalesGst },
+                        { name: 'Purchases GST (18%)', value: totalPurchasesGst },
                       ]}
                       cx="50%"
                       cy="50%"
