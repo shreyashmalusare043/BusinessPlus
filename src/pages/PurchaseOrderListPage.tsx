@@ -175,7 +175,7 @@ export default function PurchaseOrderListPage() {
             'Freight / Other Chrg (₹)': '0.00',
             'Total Basic Amt (₹)': Number(po.subtotal || 0).toFixed(2),
             'GST %': '18%',
-            'IGST (₹)': '0.00',
+            'IGST (₹)': Number(po.total_igst || 0).toFixed(2),
             'CGST (₹)': Number(po.total_cgst || 0).toFixed(2),
             'SGST (₹)': Number(po.total_sgst || 0).toFixed(2),
             'Total (₹)': Number(po.grand_total || 0).toFixed(2),
@@ -484,6 +484,9 @@ export default function PurchaseOrderListPage() {
                     <TableHead className="whitespace-nowrap text-xs sm:text-sm">Invoice No</TableHead>
                     <TableHead className="whitespace-nowrap text-xs sm:text-sm">Date</TableHead>
                     <TableHead className="whitespace-nowrap text-xs sm:text-sm">Supplier Name</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">CGST</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">SGST</TableHead>
+                    <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">IGST</TableHead>
                     <TableHead className="text-right whitespace-nowrap text-xs sm:text-sm">Total Amount</TableHead>
                     <TableHead className="whitespace-nowrap text-xs sm:text-sm">Payment Status</TableHead>
                     <TableHead className="whitespace-nowrap text-xs sm:text-sm">Paid Date</TableHead>
@@ -497,7 +500,10 @@ export default function PurchaseOrderListPage() {
                       <TableCell className="whitespace-nowrap text-xs sm:text-sm">{po.invoice_no || '-'}</TableCell>
                       <TableCell className="whitespace-nowrap text-xs sm:text-sm">{new Date(po.po_date).toLocaleDateString()}</TableCell>
                       <TableCell className="whitespace-nowrap text-xs sm:text-sm">{po.supplier_name}</TableCell>
-                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{po.grand_total.toFixed(2)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{Number(po.total_cgst || 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{Number(po.total_sgst || 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{Number(po.total_igst || 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm font-medium">₹{po.grand_total.toFixed(2)}</TableCell>
                       <TableCell>
                         <Select
                           value={po.payment_status || 'unpaid'}

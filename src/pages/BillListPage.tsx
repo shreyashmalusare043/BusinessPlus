@@ -626,7 +626,7 @@ export default function BillListPage() {
                       <TableCell className="whitespace-nowrap text-xs sm:text-sm">{new Date(bill.bill_date).toLocaleDateString()}</TableCell>
                       <TableCell className="whitespace-nowrap text-xs sm:text-sm">{bill.customer_name}</TableCell>
                       <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{bill.grand_total.toFixed(2)}</TableCell>
-                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{(bill.total_cgst + bill.total_sgst).toFixed(2)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">₹{(bill.total_cgst + bill.total_sgst + bill.total_igst).toFixed(2)}</TableCell>
                       <TableCell>
                         <Select
                           value={bill.payment_status}
@@ -686,6 +686,16 @@ export default function BillListPage() {
                       </TableCell>
                     </TableRow>
                   ))}
+                  <TableRow className="border-t-2 bg-muted/30 font-bold">
+                    <TableCell colSpan={3} className="text-xs sm:text-sm">GRAND TOTAL ({filteredBills.length} bills)</TableCell>
+                    <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">
+                      ₹{filteredBills.reduce((total, bill) => total + Number(bill.grand_total || 0), 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap text-xs sm:text-sm">
+                      ₹{filteredBills.reduce((total, bill) => total + Number(bill.total_cgst || 0) + Number(bill.total_sgst || 0) + Number(bill.total_igst || 0), 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell colSpan={4} />
+                  </TableRow>
                 </TableBody>
               </Table>
             </div>

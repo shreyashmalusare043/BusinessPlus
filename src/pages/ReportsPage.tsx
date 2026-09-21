@@ -38,6 +38,7 @@ export default function ReportsPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
+  const [paymentStatus, setPaymentStatus] = useState<'all' | 'paid' | 'unpaid'>('all');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function ReportsPage() {
       const { startDate, endDate } = getDateRange();
       setLoading(true);
       const [data, bills, purchaseOrders] = await Promise.all([
-        getReportData(startDate, endDate),
+        getReportData(startDate, endDate, paymentStatus),
         getBillsByDateRange(startDate, endDate),
         getPurchaseOrdersByDateRange(startDate, endDate),
       ]);
@@ -105,7 +106,7 @@ export default function ReportsPage() {
   };
 
   const chartData = reportData.map((item) => ({
-    date: new Date(item.period).toLocaleDateString(),
+    month: new Date(`${item.period}-01T00:00:00`).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
     Sales: item.total_sales,
     Purchases: item.total_purchases,
     Expenses: item.total_expenses,
@@ -125,9 +126,12 @@ export default function ReportsPage() {
   const netProfit = totalSales - totalPurchases - totalExpenses;
 
   const filteredReportBills = useMemo(() => {
-    if (selectedCompanies.length === 0) return reportBills;
-    return reportBills.filter((bill) => selectedCompanies.includes(bill.customer_name));
-  }, [reportBills, selectedCompanies]);
+    return reportBills.filter((bill) => {
+      const matchesCompany = selectedCompanies.length === 0 || selectedCompanies.includes(bill.customer_name);
+      const matchesStatus = paymentStatus === 'all' || (paymentStatus === 'paid' ? bill.payment_status === 'paid' : bill.payment_status !== 'paid');
+      return matchesCompany && matchesStatus;
+    });
+  }, [reportBills, selectedCompanies, paymentStatus]);
 
   const companySummaries = useMemo(() => {
     const summaries = new Map<string, { billCount: number; amount: number; gst: number; paid: number; pending: number }>();
@@ -146,9 +150,12 @@ export default function ReportsPage() {
   }, [filteredReportBills]);
 
   const filteredReportPurchaseOrders = useMemo(() => {
-    if (selectedSuppliers.length === 0) return reportPurchaseOrders;
-    return reportPurchaseOrders.filter((purchaseOrder) => selectedSuppliers.includes(purchaseOrder.supplier_name));
-  }, [reportPurchaseOrders, selectedSuppliers]);
+    return reportPurchaseOrders.filter((purchaseOrder) => {
+      const matchesSupplier = selectedSuppliers.length === 0 || selectedSuppliers.includes(purchaseOrder.supplier_name);
+      const matchesStatus = paymentStatus === 'all' || (paymentStatus === 'paid' ? purchaseOrder.payment_status === 'paid' : purchaseOrder.payment_status !== 'paid');
+      return matchesSupplier && matchesStatus;
+    });
+  }, [reportPurchaseOrders, selectedSuppliers, paymentStatus]);
 
   const supplierSummaries = useMemo(() => {
     const summaries = new Map<string, { orderCount: number; amount: number; gst: number; paid: number; unpaid: number }>();
@@ -157,7 +164,7 @@ export default function ReportsPage() {
       const summary = summaries.get(purchaseOrder.supplier_name) || { orderCount: 0, amount: 0, gst: 0, paid: 0, unpaid: 0 };
       summary.orderCount += 1;
       summary.amount += Number(purchaseOrder.grand_total || 0);
-      summary.gst += Number(purchaseOrder.total_cgst || 0) + Number(purchaseOrder.total_sgst || 0);
+      summary.gst += Number(purchaseOrder.total_cgst || 0) + Number(purchaseOrder.total_sgst || 0) + Number(purchaseOrder.total_igst || 0);
       if (purchaseOrder.payment_status === 'paid') summary.paid += 1;
       else summary.unpaid += 1;
       summaries.set(purchaseOrder.supplier_name, summary);
@@ -165,6 +172,22 @@ export default function ReportsPage() {
 
     return Array.from(summaries, ([supplier, summary]) => ({ supplier, ...summary }));
   }, [filteredReportPurchaseOrders]);
+
+  const companyGrandTotal = useMemo(() => companySummaries.reduce((total, summary) => ({
+    billCount: total.billCount + summary.billCount,
+    amount: total.amount + summary.amount,
+    gst: total.gst + summary.gst,
+    paid: total.paid + summary.paid,
+    pending: total.pending + summary.pending,
+  }), { billCount: 0, amount: 0, gst: 0, paid: 0, pending: 0 }), [companySummaries]);
+
+  const purchaseGrandTotal = useMemo(() => supplierSummaries.reduce((total, summary) => ({
+    orderCount: total.orderCount + summary.orderCount,
+    amount: total.amount + summary.amount,
+    gst: total.gst + summary.gst,
+    paid: total.paid + summary.paid,
+    unpaid: total.unpaid + summary.unpaid,
+  }), { orderCount: 0, amount: 0, gst: 0, paid: 0, unpaid: 0 }), [supplierSummaries]);
 
   const toggleCompany = (companyName: string) => {
     setSelectedCompanies((current) =>
@@ -290,6 +313,20 @@ export default function ReportsPage() {
               </DropdownMenu>
             </div>
 
+            <div className="space-y-2">
+              <Label>Payment Status</Label>
+              <Select value={paymentStatus} onValueChange={(value) => setPaymentStatus(value as typeof paymentStatus)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Bills & Purchases</SelectItem>
+                  <SelectItem value="paid">Paid Only</SelectItem>
+                  <SelectItem value="unpaid">Unpaid Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex items-end">
               <Button onClick={handleGenerateReport} disabled={loading} className="w-full">
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -333,6 +370,14 @@ export default function ReportsPage() {
                           <td className="px-3 py-2 text-right text-orange-600">{summary.pending}</td>
                         </tr>
                       ))}
+                      <tr className="border-t-2 bg-muted/30 font-bold">
+                        <td className="px-3 py-2">GRAND TOTAL</td>
+                        <td className="px-3 py-2 text-right">{companyGrandTotal.billCount}</td>
+                        <td className="px-3 py-2 text-right">₹{companyGrandTotal.amount.toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right">₹{companyGrandTotal.gst.toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right text-green-600">{companyGrandTotal.paid}</td>
+                        <td className="px-3 py-2 text-right text-orange-600">{companyGrandTotal.pending}</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -371,6 +416,14 @@ export default function ReportsPage() {
                           <td className="px-3 py-2 text-right text-orange-600">{summary.unpaid}</td>
                         </tr>
                       ))}
+                      <tr className="border-t-2 bg-muted/30 font-bold">
+                        <td className="px-3 py-2">GRAND TOTAL</td>
+                        <td className="px-3 py-2 text-right">{purchaseGrandTotal.orderCount}</td>
+                        <td className="px-3 py-2 text-right">₹{purchaseGrandTotal.amount.toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right">₹{purchaseGrandTotal.gst.toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right text-green-600">{purchaseGrandTotal.paid}</td>
+                        <td className="px-3 py-2 text-right text-orange-600">{purchaseGrandTotal.unpaid}</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -628,7 +681,7 @@ export default function ReportsPage() {
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis 
-                      dataKey="date" 
+                      dataKey="month" 
                       stroke="hsl(var(--foreground))"
                       fontSize={12}
                     />
@@ -719,7 +772,7 @@ export default function ReportsPage() {
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis 
-                    dataKey="date" 
+                    dataKey="month" 
                     stroke="hsl(var(--foreground))"
                     fontSize={12}
                   />
@@ -751,7 +804,7 @@ export default function ReportsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-2">Date</th>
+                      <th className="text-left py-2">Month</th>
                       <th className="text-right py-2">Sales (with GST)</th>
                       <th className="text-right py-2">Sales GST</th>
                       <th className="text-right py-2">Sales (excl. GST)</th>
@@ -764,7 +817,7 @@ export default function ReportsPage() {
                   <tbody>
                     {reportData.map((item, index) => (
                       <tr key={index} className="border-b hover:bg-muted/50">
-                        <td className="py-2">{new Date(item.period).toLocaleDateString()}</td>
+                        <td className="py-2">{new Date(`${item.period}-01T00:00:00`).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</td>
                         <td className="text-right py-2 text-green-600 font-medium">₹{item.total_sales.toFixed(2)}</td>
                         <td className="text-right py-2 text-blue-600">₹{item.sales_gst.toFixed(2)}</td>
                         <td className="text-right py-2 text-green-700">₹{item.sales_without_gst.toFixed(2)}</td>

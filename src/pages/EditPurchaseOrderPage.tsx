@@ -71,7 +71,7 @@ export default function EditPurchaseOrderPage() {
         }
 
         // Determine GST type from items
-        const gstType = po.purchase_order_items.some(item => item.igst_amount > 0) ? 'igst' : 'cgst_sgst';
+        const gstType = po.gst_type || (po.purchase_order_items.some(item => item.igst_amount > 0) ? 'igst' : 'cgst_sgst');
 
         // Populate form with purchase order data
         form.reset({

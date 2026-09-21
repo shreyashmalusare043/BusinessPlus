@@ -103,8 +103,14 @@ export default function ViewPurchaseOrderPage() {
                   <TableHead className="text-right">Quantity</TableHead>
                   <TableHead className="text-right">Rate</TableHead>
                   <TableHead className="text-right">Total Amount</TableHead>
-                  <TableHead className="text-right">CGST</TableHead>
-                  <TableHead className="text-right">SGST</TableHead>
+                  {po.total_igst > 0 ? (
+                    <TableHead className="text-right">IGST</TableHead>
+                  ) : (
+                    <>
+                      <TableHead className="text-right">CGST</TableHead>
+                      <TableHead className="text-right">SGST</TableHead>
+                    </>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -118,14 +124,23 @@ export default function ViewPurchaseOrderPage() {
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell className="text-right">₹{item.unit_price.toFixed(2)}</TableCell>
                     <TableCell className="text-right font-medium">₹{item.line_total.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                      {item.cgst_rate}%<br />
-                      <span className="text-sm text-muted-foreground">₹{item.cgst_amount.toFixed(2)}</span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {item.sgst_rate}%<br />
-                      <span className="text-sm text-muted-foreground">₹{item.sgst_amount.toFixed(2)}</span>
-                    </TableCell>
+                    {po.total_igst > 0 ? (
+                      <TableCell className="text-right">
+                        {item.igst_rate}%<br />
+                        <span className="text-sm text-muted-foreground">₹{item.igst_amount.toFixed(2)}</span>
+                      </TableCell>
+                    ) : (
+                      <>
+                        <TableCell className="text-right">
+                          {item.cgst_rate}%<br />
+                          <span className="text-sm text-muted-foreground">₹{item.cgst_amount.toFixed(2)}</span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {item.sgst_rate}%<br />
+                          <span className="text-sm text-muted-foreground">₹{item.sgst_amount.toFixed(2)}</span>
+                        </TableCell>
+                      </>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -139,14 +154,23 @@ export default function ViewPurchaseOrderPage() {
                 <span className="font-medium">Subtotal:</span>
                 <span>₹{po.subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Total CGST:</span>
-                <span>₹{po.total_cgst.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Total SGST:</span>
-                <span>₹{po.total_sgst.toFixed(2)}</span>
-              </div>
+              {po.total_igst > 0 ? (
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Total IGST:</span>
+                  <span>₹{po.total_igst.toFixed(2)}</span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">Total CGST:</span>
+                    <span>₹{po.total_cgst.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">Total SGST:</span>
+                    <span>₹{po.total_sgst.toFixed(2)}</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between text-lg font-bold border-t pt-2">
                 <span>Grand Total:</span>
                 <span>₹{po.grand_total.toFixed(2)}</span>

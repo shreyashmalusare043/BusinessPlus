@@ -10,6 +10,7 @@ export type TransactionStatus = 'pending' | 'success' | 'failed' | 'refunded';
 export type PurchaseOrderClassification = 'expense' | 'stock';
 export type GstType = 'cgst_sgst' | 'igst';
 export type UnitType = string;
+export type BillNotesFormat = 'paragraph' | 'bullet';
 
 export interface Profile {
   id: string;
@@ -105,6 +106,8 @@ export interface Bill {
   tcs_applicable: boolean;
   tcs_amount: number;
   grand_total: number;
+  notes: string | null;
+  notes_format: BillNotesFormat;
   payment_status: PaymentStatus;
   payment_reminder: PaymentReminder;
   last_reminder_sent_at: string | null;
@@ -145,6 +148,7 @@ export interface PurchaseOrder {
   supplier_contact: string | null;
   supplier_address: string | null;
   supplier_gst_number: string | null;
+  gst_type: GstType;
   classification: PurchaseOrderClassification;
   status: 'pending' | 'confirmed' | 'revised';
   payment_status: 'paid' | 'unpaid';
@@ -152,6 +156,7 @@ export interface PurchaseOrder {
   subtotal: number;
   total_cgst: number;
   total_sgst: number;
+  total_igst: number;
   grand_total: number;
   created_at: string;
   updated_at: string;
@@ -168,6 +173,8 @@ export interface PurchaseOrderItem {
   sgst_rate: number;
   cgst_amount: number;
   sgst_amount: number;
+  igst_rate: number;
+  igst_amount: number;
   line_total: number;
   created_at: string;
 }
@@ -209,6 +216,8 @@ export interface BillForm {
   po_number?: string;
   gst_type: GstType;
   tcs_applicable: boolean;
+  notes?: string;
+  notes_format: BillNotesFormat;
   payment_status?: PaymentStatus;
   payment_reminder?: PaymentReminder;
   items: BillItemForm[];

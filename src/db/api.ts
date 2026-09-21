@@ -328,6 +328,8 @@ export async function createBill(billData: BillForm): Promise<Bill> {
       tcs_applicable: billData.tcs_applicable,
       tcs_amount: tcsAmount,
       grand_total: grandTotal,
+      notes: billData.notes?.trim() || null,
+      notes_format: billData.notes_format,
     })
     .select()
     .single();
@@ -426,6 +428,8 @@ export async function updateBill(billId: string, billData: BillForm, oldBillItem
       tcs_applicable: billData.tcs_applicable,
       tcs_amount: tcsAmount,
       grand_total: grandTotal,
+      notes: billData.notes?.trim() || null,
+      notes_format: billData.notes_format,
       updated_at: new Date().toISOString(),
     })
     .eq('id', billId)
@@ -709,18 +713,21 @@ export async function createPurchaseOrder(poData: PurchaseOrderForm): Promise<Pu
   let subtotal = 0;
   let totalCgst = 0;
   let totalSgst = 0;
+  let totalIgst = 0;
 
   const itemsToInsert: Omit<PurchaseOrderItem, 'id' | 'po_id' | 'created_at'>[] = [];
 
   for (const item of poData.items) {
     const lineSubtotal = item.quantity * item.unit_price;
-    const cgstAmount = (lineSubtotal * item.cgst_rate) / 100;
-    const sgstAmount = (lineSubtotal * item.sgst_rate) / 100;
-    const lineTotal = lineSubtotal + cgstAmount + sgstAmount;
+    const cgstAmount = poData.gst_type === 'cgst_sgst' ? (lineSubtotal * item.cgst_rate) / 100 : 0;
+    const sgstAmount = poData.gst_type === 'cgst_sgst' ? (lineSubtotal * item.sgst_rate) / 100 : 0;
+    const igstAmount = poData.gst_type === 'igst' ? (lineSubtotal * item.igst_rate) / 100 : 0;
+    const lineTotal = lineSubtotal + cgstAmount + sgstAmount + igstAmount;
 
     subtotal += lineSubtotal;
     totalCgst += cgstAmount;
     totalSgst += sgstAmount;
+    totalIgst += igstAmount;
 
     itemsToInsert.push({
       item_name: item.item_name,
@@ -731,11 +738,13 @@ export async function createPurchaseOrder(poData: PurchaseOrderForm): Promise<Pu
       sgst_rate: item.sgst_rate,
       cgst_amount: cgstAmount,
       sgst_amount: sgstAmount,
+      igst_rate: item.igst_rate,
+      igst_amount: igstAmount,
       line_total: lineTotal,
     });
   }
 
-  const grandTotal = subtotal + totalCgst + totalSgst;
+  const grandTotal = subtotal + totalCgst + totalSgst + totalIgst;
 
   // Insert purchase order
   const { data: po, error: poError } = await supabase
@@ -749,11 +758,13 @@ export async function createPurchaseOrder(poData: PurchaseOrderForm): Promise<Pu
       supplier_contact: poData.supplier_contact || null,
       supplier_address: poData.supplier_address || null,
       supplier_gst_number: poData.supplier_gst_number || null,
+      gst_type: poData.gst_type,
       classification: poData.classification,
       status: 'pending',
       subtotal,
       total_cgst: totalCgst,
       total_sgst: totalSgst,
+      total_igst: totalIgst,
       grand_total: grandTotal,
     })
     .select()
@@ -781,9 +792,10 @@ export async function createPurchaseOrder(poData: PurchaseOrderForm): Promise<Pu
     // Create expense entries for expense classification
     const expenseEntries = poData.items.map((item) => {
       const subtotal = item.quantity * item.unit_price;
-      const cgstAmount = (subtotal * item.cgst_rate) / 100;
-      const sgstAmount = (subtotal * item.sgst_rate) / 100;
-      const totalAmount = subtotal + cgstAmount + sgstAmount;
+      const cgstAmount = poData.gst_type === 'cgst_sgst' ? (subtotal * item.cgst_rate) / 100 : 0;
+      const sgstAmount = poData.gst_type === 'cgst_sgst' ? (subtotal * item.sgst_rate) / 100 : 0;
+      const igstAmount = poData.gst_type === 'igst' ? (subtotal * item.igst_rate) / 100 : 0;
+      const totalAmount = subtotal + cgstAmount + sgstAmount + igstAmount;
       
       return {
         user_id: userId,
@@ -837,18 +849,21 @@ export async function updatePurchaseOrder(poId: string, poData: PurchaseOrderFor
   let subtotal = 0;
   let totalCgst = 0;
   let totalSgst = 0;
+  let totalIgst = 0;
 
   const itemsToInsert: Omit<PurchaseOrderItem, 'id' | 'po_id' | 'created_at'>[] = [];
 
   for (const item of poData.items) {
     const lineSubtotal = item.quantity * item.unit_price;
-    const cgstAmount = (lineSubtotal * item.cgst_rate) / 100;
-    const sgstAmount = (lineSubtotal * item.sgst_rate) / 100;
-    const lineTotal = lineSubtotal + cgstAmount + sgstAmount;
+    const cgstAmount = poData.gst_type === 'cgst_sgst' ? (lineSubtotal * item.cgst_rate) / 100 : 0;
+    const sgstAmount = poData.gst_type === 'cgst_sgst' ? (lineSubtotal * item.sgst_rate) / 100 : 0;
+    const igstAmount = poData.gst_type === 'igst' ? (lineSubtotal * item.igst_rate) / 100 : 0;
+    const lineTotal = lineSubtotal + cgstAmount + sgstAmount + igstAmount;
 
     subtotal += lineSubtotal;
     totalCgst += cgstAmount;
     totalSgst += sgstAmount;
+    totalIgst += igstAmount;
 
     itemsToInsert.push({
       item_name: item.item_name,
@@ -859,11 +874,13 @@ export async function updatePurchaseOrder(poId: string, poData: PurchaseOrderFor
       sgst_rate: item.sgst_rate,
       cgst_amount: cgstAmount,
       sgst_amount: sgstAmount,
+      igst_rate: item.igst_rate,
+      igst_amount: igstAmount,
       line_total: lineTotal,
     });
   }
 
-  const grandTotal = subtotal + totalCgst + totalSgst;
+  const grandTotal = subtotal + totalCgst + totalSgst + totalIgst;
 
   // Update purchase order - set status to 'revised' when updating
   const { data: po, error: poError } = await supabase
@@ -875,11 +892,13 @@ export async function updatePurchaseOrder(poId: string, poData: PurchaseOrderFor
       supplier_contact: poData.supplier_contact || null,
       supplier_address: poData.supplier_address || null,
       supplier_gst_number: poData.supplier_gst_number || null,
+      gst_type: poData.gst_type,
       classification: poData.classification,
       status: 'revised',
       subtotal,
       total_cgst: totalCgst,
       total_sgst: totalSgst,
+      total_igst: totalIgst,
       grand_total: grandTotal,
     })
     .eq('id', poId)
@@ -1032,29 +1051,41 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 // ============ Reports APIs ============
-export async function getReportData(startDate: string, endDate: string): Promise<ReportData[]> {
+export async function getReportData(
+  startDate: string,
+  endDate: string,
+  paymentStatus: 'all' | 'paid' | 'unpaid' = 'all',
+): Promise<ReportData[]> {
   const userId = (await supabase.auth.getUser()).data.user?.id;
   if (!userId) throw new Error('User not authenticated');
 
-  // Get bills in date range with GST details
-  const { data: bills, error: billsError } = await supabase
+  let billsQuery = supabase
     .from('bills')
-    .select('bill_date, grand_total, total_cgst, total_sgst, total_igst, subtotal')
+    .select('bill_date, grand_total, total_cgst, total_sgst, total_igst, subtotal, payment_status')
     .eq('user_id', userId)
     .gte('bill_date', startDate)
     .lte('bill_date', endDate)
     .order('bill_date', { ascending: true });
 
+  if (paymentStatus === 'paid') billsQuery = billsQuery.eq('payment_status', 'paid');
+  if (paymentStatus === 'unpaid') billsQuery = billsQuery.neq('payment_status', 'paid');
+
+  const { data: bills, error: billsError } = await billsQuery;
+
   if (billsError) throw billsError;
 
-  // Get purchase orders in date range with GST details
-  const { data: pos, error: posError } = await supabase
+  let purchaseOrdersQuery = supabase
     .from('purchase_orders')
-    .select('po_date, grand_total, total_cgst, total_sgst, subtotal')
+    .select('po_date, grand_total, total_cgst, total_sgst, total_igst, subtotal, payment_status')
     .eq('user_id', userId)
     .gte('po_date', startDate)
     .lte('po_date', endDate)
     .order('po_date', { ascending: true });
+
+  if (paymentStatus === 'paid') purchaseOrdersQuery = purchaseOrdersQuery.eq('payment_status', 'paid');
+  if (paymentStatus === 'unpaid') purchaseOrdersQuery = purchaseOrdersQuery.neq('payment_status', 'paid');
+
+  const { data: pos, error: posError } = await purchaseOrdersQuery;
 
   if (posError) throw posError;
 
@@ -1069,7 +1100,8 @@ export async function getReportData(startDate: string, endDate: string): Promise
 
   if (expensesError) throw expensesError;
 
-  // Aggregate by date
+  const getMonthKey = (date: string) => date.slice(0, 7);
+
   const dataMap = new Map<string, { 
     sales: number; 
     purchases: number;
@@ -1081,7 +1113,8 @@ export async function getReportData(startDate: string, endDate: string): Promise
   }>();
 
   (bills || []).forEach((bill) => {
-    const existing = dataMap.get(bill.bill_date) || { 
+    const period = getMonthKey(bill.bill_date);
+    const existing = dataMap.get(period) || { 
       sales: 0, 
       purchases: 0,
       expenses: 0,
@@ -1093,11 +1126,12 @@ export async function getReportData(startDate: string, endDate: string): Promise
     existing.sales += Number(bill.grand_total);
     existing.salesGst += Number(bill.total_cgst || 0) + Number(bill.total_sgst || 0) + Number(bill.total_igst || 0);
     existing.salesWithoutGst += Number(bill.subtotal);
-    dataMap.set(bill.bill_date, existing);
+    dataMap.set(period, existing);
   });
 
   (pos || []).forEach((po) => {
-    const existing = dataMap.get(po.po_date) || { 
+    const period = getMonthKey(po.po_date);
+    const existing = dataMap.get(period) || { 
       sales: 0, 
       purchases: 0,
       expenses: 0,
@@ -1107,13 +1141,14 @@ export async function getReportData(startDate: string, endDate: string): Promise
       purchasesWithoutGst: 0
     };
     existing.purchases += Number(po.grand_total);
-    existing.purchasesGst += Number(po.total_cgst) + Number(po.total_sgst);
+    existing.purchasesGst += Number(po.total_cgst || 0) + Number(po.total_sgst || 0) + Number(po.total_igst || 0);
     existing.purchasesWithoutGst += Number(po.subtotal);
-    dataMap.set(po.po_date, existing);
+    dataMap.set(period, existing);
   });
 
   (expenses || []).forEach((expense) => {
-    const existing = dataMap.get(expense.expense_date) || { 
+    const period = getMonthKey(expense.expense_date);
+    const existing = dataMap.get(period) || { 
       sales: 0, 
       purchases: 0,
       expenses: 0,
@@ -1123,7 +1158,7 @@ export async function getReportData(startDate: string, endDate: string): Promise
       purchasesWithoutGst: 0
     };
     existing.expenses += Number(expense.amount);
-    dataMap.set(expense.expense_date, existing);
+    dataMap.set(period, existing);
   });
 
   // Convert to array
