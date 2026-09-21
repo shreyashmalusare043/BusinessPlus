@@ -9,7 +9,7 @@ export type SubscriptionStatus = 'active' | 'expired' | 'cancelled';
 export type TransactionStatus = 'pending' | 'success' | 'failed' | 'refunded';
 export type PurchaseOrderClassification = 'expense' | 'stock';
 export type GstType = 'cgst_sgst' | 'igst';
-export type UnitType = 'Nos' | 'Ltr' | 'Kg';
+export type UnitType = string;
 
 export interface Profile {
   id: string;

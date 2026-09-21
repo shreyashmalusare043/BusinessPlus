@@ -107,7 +107,7 @@ export default function CreateBillPage() {
           item_name: item.item_name,
           hsn_code: item.hsn_code || '',
           quantity: item.quantity,
-          unit: item.unit as 'Nos' | 'Ltr' | 'Kg',
+          unit: item.unit,
           unit_price: item.unit_price,
           cgst_rate: item.cgst_rate,
           sgst_rate: item.sgst_rate,
@@ -743,20 +743,18 @@ export default function CreateBillPage() {
                             <FormField
                               control={form.control}
                               name={`items.${index}.unit`}
+                              rules={{ required: 'Required' }}
                               render={({ field }) => (
                                 <FormItem>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Unit" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="Nos">Nos</SelectItem>
-                                      <SelectItem value="Ltr">Ltr</SelectItem>
-                                      <SelectItem value="Kg">Kg</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      list="bill-unit-options"
+                                      placeholder="Unit"
+                                      onChange={(event) => field.onChange(event.target.value)}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
                                 </FormItem>
                               )}
                             />
@@ -860,6 +858,12 @@ export default function CreateBillPage() {
                     })}
                   </TableBody>
                 </Table>
+                <datalist id="bill-unit-options">
+                  <option value="Nos" />
+                  <option value="Ltr" />
+                  <option value="Kg" />
+                  <option value="MT" />
+                </datalist>
                 </div>
               </div>
 
