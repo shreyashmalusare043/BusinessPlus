@@ -44,6 +44,7 @@ const navItems: NavItem[] = [
   { name: 'Expenses', path: '/expenses', icon: <Wallet className="h-5 w-5" /> },
   { name: 'Delivery Challan', path: '/delivery-challans', icon: <FileCheck className="h-5 w-5" /> },
   { name: 'Stock', path: '/stock', icon: <Package className="h-5 w-5" /> },
+  { name: 'Material Inventory', path: '/material-inventory', icon: <Package className="h-5 w-5" /> },
   { name: 'Work Tracking', path: '/work-tracking', icon: <ClipboardList className="h-5 w-5" /> },
   { name: 'Reports', path: '/reports', icon: <BarChart3 className="h-5 w-5" /> },
   { name: 'User Management', path: '/users', icon: <Users className="h-5 w-5" />, adminOnly: true },

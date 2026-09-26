@@ -13,9 +13,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getBillsByDateRange, getBillsByPaymentDateRange, getMyBills, getMyCustomers, updateBillPaymentStatus } from '@/db/api';
+import { getBillById, getBillsByDateRange, getBillsByPaymentDateRange, getMyBills, getMyCompany, getMyCustomers, updateBillPaymentStatus } from '@/db/api';
 import { supabase } from '@/db/supabase';
 import type { Bill, Customer } from '@/types';
+import { createBillPdfBase64 } from '@/lib/paymentEmail';
 
 export default function BillListPage() {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -136,6 +137,9 @@ export default function BillListPage() {
         const bill = bills.find(b => b.id === billId);
         if (bill?.customer_email) {
           try {
+            const [fullBill, company] = await Promise.all([getBillById(bill.id), getMyCompany()]);
+            if (!fullBill || !company) throw new Error('Bill or company details are missing for the email');
+            const pdfBase64 = await createBillPdfBase64(fullBill, company);
             await supabase.functions.invoke('send-payment-email', {
               body: {
                 type: 'confirmation',
@@ -144,6 +148,9 @@ export default function BillListPage() {
                 customerName: bill.customer_name,
                 billNo: bill.bill_no,
                 amount: bill.grand_total,
+                companyName: company.company_name,
+                pdfBase64,
+                pdfFilename: `Bill_${bill.bill_no}.pdf`,
               },
             });
             toast.success('Payment status updated and confirmation email sent');
@@ -668,6 +675,7 @@ export default function BillListPage() {
                       <TableCell>
                         <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
                           {bill.payment_reminder === 'none' ? 'None' : 
+                           bill.payment_reminder === 'now' ? 'Now' :
                            bill.payment_reminder === '7_days' ? '7 Days' :
                            bill.payment_reminder === '30_days' ? '30 Days' :
                            bill.payment_reminder === '45_days' ? '45 Days' :

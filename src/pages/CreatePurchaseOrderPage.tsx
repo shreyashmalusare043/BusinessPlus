@@ -29,6 +29,7 @@ export default function CreatePurchaseOrderPage() {
       supplier_gst_number: '',
       invoice_no: '',
       po_date: new Date().toISOString().split('T')[0],
+      payment_status: 'unpaid',
       classification: 'expense',
       gst_type: 'cgst_sgst',
       items: [
@@ -368,6 +369,29 @@ export default function CreatePurchaseOrderPage() {
                         <SelectContent>
                           <SelectItem value="expense">Expense</SelectItem>
                           <SelectItem value="stock">Stock</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="payment_status"
+                  rules={{ required: 'Payment status is required' }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Status</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select payment status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="paid">Paid</SelectItem>
+                          <SelectItem value="unpaid">Unpaid</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

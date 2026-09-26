@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 output
+release/
+android/app/release/
 *.local
 package-lock.json
 

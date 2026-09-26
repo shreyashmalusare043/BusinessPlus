@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { createWorkOrder } from './workOrder';
 import type {
   Profile,
   Company,
@@ -9,6 +10,11 @@ import type {
   PurchaseOrderWithItems,
   PurchaseOrderItem,
   StockItem,
+  MaterialInventoryMovement,
+  MaterialInventoryMovementForm,
+  InwardEntry,
+  InwardEntryForm,
+  AvailableInwardItem,
   Customer,
   Supplier,
   SupportTicket,
@@ -113,6 +119,32 @@ export async function getMyBills(limit = 100, offset = 0): Promise<Bill[]> {
 
   if (error) throw error;
   return Array.isArray(data) ? data : [];
+}
+
+export async function getMyBillsWithItemsByCustomer(customerName: string): Promise<BillWithItems[]> {
+  const { data: bills, error: billsError } = await supabase
+    .from('bills')
+    .select('*')
+    .eq('customer_name', customerName)
+    .order('bill_date', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (billsError) throw billsError;
+  if (!bills || bills.length === 0) return [];
+
+  const billIds = bills.map((bill) => bill.id);
+  const { data: items, error: itemsError } = await supabase
+    .from('bill_items')
+    .select('*')
+    .in('bill_id', billIds)
+    .order('created_at', { ascending: true });
+
+  if (itemsError) throw itemsError;
+
+  return bills.map((bill) => ({
+    ...bill,
+    bill_items: Array.isArray(items) ? items.filter((item) => item.bill_id === bill.id) : [],
+  }));
 }
 
 export async function getRecentBills(limit = 5): Promise<Bill[]> {
@@ -348,7 +380,20 @@ export async function createBill(billData: BillForm): Promise<Bill> {
 
   // Update stock quantities (decrement)
   for (const item of billData.items) {
-    await updateStockQuantity(item.item_name, item.hsn_code, -item.quantity);
+    await createMaterialInventoryMovement({
+      movement_type: 'out',
+      movement_date: billData.bill_date,
+      item_name: item.item_name,
+      hsn_code: item.hsn_code,
+      quantity: item.quantity,
+      unit: item.unit,
+      unit_price: item.unit_price,
+      party_name: billData.customer_name,
+      document_number: bill.bill_no,
+      purchase_order_number: billData.po_number || '',
+      document_type: 'bill',
+      notes: billData.po_number ? `PO: ${billData.po_number}` : '',
+    }, { source: 'bill', documentId: bill.id });
   }
 
   return bill;
@@ -761,6 +806,10 @@ export async function createPurchaseOrder(poData: PurchaseOrderForm): Promise<Pu
       gst_type: poData.gst_type,
       classification: poData.classification,
       status: 'pending',
+      payment_status: poData.payment_status,
+      payment_confirmed_at: poData.payment_status === 'paid'
+        ? new Date(`${poData.po_date}T12:00:00`).toISOString()
+        : null,
       subtotal,
       total_cgst: totalCgst,
       total_sgst: totalSgst,
@@ -786,7 +835,20 @@ export async function createPurchaseOrder(poData: PurchaseOrderForm): Promise<Pu
   if (poData.classification === 'stock') {
     // Update stock quantities (increment) only for stock classification
     for (const item of poData.items) {
-      await updateStockQuantity(item.item_name, item.hsn_code, item.quantity);
+      await createMaterialInventoryMovement({
+        movement_type: 'in',
+        movement_date: poData.po_date,
+        item_name: item.item_name,
+        hsn_code: item.hsn_code,
+        quantity: item.quantity,
+        unit: 'pcs',
+        unit_price: item.unit_price,
+        party_name: poData.supplier_name,
+        document_number: poNo,
+        purchase_order_number: poNo,
+        document_type: 'purchase_order',
+        notes: poData.invoice_no ? `Invoice: ${poData.invoice_no}` : '',
+      }, { source: 'purchase_order', documentId: po.id });
     }
   } else if (poData.classification === 'expense') {
     // Create expense entries for expense classification
@@ -985,6 +1047,358 @@ export async function deleteStockItem(stockId: string): Promise<void> {
   const { error } = await supabase.from('stock_items').delete().eq('id', stockId);
 
   if (error) throw error;
+}
+
+export async function getMaterialInventoryMovements(): Promise<MaterialInventoryMovement[]> {
+  const { data, error } = await supabase
+    .from('material_inventory_movements')
+    .select('*')
+    .order('movement_date', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+export async function getInwardEntries(): Promise<InwardEntry[]> {
+  const { data, error } = await supabase
+    .from('inward_entries')
+    .select('*, inward_items(*)')
+    .order('received_date', { ascending: false });
+  if (error) throw error;
+  return Array.isArray(data) ? data as InwardEntry[] : [];
+}
+
+export async function createConfirmedInward(
+  inwardData: InwardEntryForm,
+  document?: { path: string; name: string; mimeType: string; size: number },
+  extraction?: { rawText: string; json: unknown },
+): Promise<InwardEntry> {
+  const userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) throw new Error('User not authenticated');
+
+  const { count } = await supabase.from('inward_entries').select('id', { count: 'exact', head: true }).eq('user_id', userId);
+  const inwardNo = `IN/${String((count || 0) + 1).padStart(4, '0')}/${new Date(inwardData.received_date).getFullYear()}`;
+  const { data: inward, error: inwardError } = await supabase.from('inward_entries').insert({
+    user_id: userId,
+    inward_no: inwardNo,
+    challan_no: inwardData.challan_no || null,
+    challan_date: inwardData.challan_date || null,
+    document_no: inwardData.document_no || null,
+    document_date: inwardData.document_date || null,
+    customer_name: inwardData.customer_name,
+    customer_gstin: inwardData.customer_gstin || null,
+    customer_address: inwardData.customer_address || null,
+    customer_state: inwardData.customer_state || null,
+    customer_state_code: inwardData.customer_state_code || null,
+    vehicle_no: inwardData.vehicle_no || null,
+    transporter: inwardData.transporter || null,
+    eway_bill_no: inwardData.eway_bill_no || null,
+    eway_bill_date: inwardData.eway_bill_date || null,
+    supplier_name: inwardData.supplier_name || null,
+    supplier_code: inwardData.supplier_code || null,
+    supplier_gstin: inwardData.supplier_gstin || null,
+    po_no: inwardData.po_no || null,
+    po_date: inwardData.po_date || null,
+    order_no: inwardData.order_no || null,
+    order_id: inwardData.order_id || null,
+    job_order_no: inwardData.job_order_no || null,
+    job_order_item_no: inwardData.job_order_item_no || null,
+    received_date: inwardData.received_date,
+    status: 'received',
+    extraction_status: extraction ? 'completed' : 'pending',
+    created_by: userId,
+  }).select().single();
+  if (inwardError) throw inwardError;
+
+  const { error: itemsError } = await supabase.from('inward_items').insert(inwardData.items.map((item) => ({
+    inward_id: inward.id,
+    ...item,
+    hsn_sac: item.hsn_sac || null,
+    gst_rate: item.gst_rate ?? null,
+    process_qty: item.process_qty ?? null,
+    process_rate: item.process_rate ?? null,
+    process_value: item.process_value ?? null,
+    material_rate: item.material_rate ?? null,
+    material_value: item.material_value ?? null,
+    expected_delivery_date: item.expected_delivery_date || null,
+    received_qty: item.material_qty,
+  })));
+  if (itemsError) throw itemsError;
+
+  if (document) {
+    const { error: documentError } = await supabase.from('inward_documents').insert({
+      user_id: userId,
+      inward_id: inward.id,
+      object_path: document.path,
+      original_filename: document.name,
+      mime_type: document.mimeType,
+      size_bytes: document.size,
+    });
+    if (documentError) throw documentError;
+  }
+  if (extraction) {
+    const { error: extractionError } = await supabase.from('inward_extraction_logs').insert({
+      user_id: userId,
+      inward_id: inward.id,
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+      status: 'completed',
+      raw_text: extraction.rawText,
+      extracted_json: extraction.json,
+    });
+    if (extractionError) throw extractionError;
+  }
+  return inward as InwardEntry;
+}
+
+export async function createMaterialInventoryMovement(
+  movementData: MaterialInventoryMovementForm,
+  metadata?: { source?: MaterialInventoryMovement['source']; documentId?: string },
+): Promise<MaterialInventoryMovement> {
+  const userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) throw new Error('User not authenticated');
+  if (movementData.quantity <= 0) throw new Error('Quantity must be greater than zero');
+
+  const { data, error } = await supabase
+    .from('material_inventory_movements')
+    .insert({
+      user_id: userId,
+      ...movementData,
+      document_date: movementData.document_date || null,
+      purchase_order_date: movementData.purchase_order_date || null,
+      eway_bill_date: movementData.eway_bill_date || null,
+      expected_delivery_date: movementData.expected_delivery_date || null,
+      hsn_code: movementData.hsn_code || null,
+      party_name: movementData.party_name || null,
+      document_number: movementData.document_number || null,
+      purchase_order_number: movementData.purchase_order_number || null,
+      total_amount: movementData.quantity * movementData.unit_price,
+      amount: movementData.amount || movementData.quantity * movementData.unit_price,
+      document_type: movementData.document_type || null,
+      notes: movementData.notes || null,
+      source: metadata?.source || 'manual',
+      document_id: metadata?.documentId || null,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  if (movementData.movement_type === 'in' && movementData.party_name && movementData.item_name) {
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('company_name', movementData.party_name)
+      .maybeSingle();
+
+    await createWorkOrder({
+      company_name: movementData.party_name,
+      customer_id: customer?.id || '',
+      job_name: movementData.item_name,
+      rate_per_piece: Number(movementData.unit_price || 0),
+      total_value: movementData.amount || movementData.quantity * movementData.unit_price,
+      quantity_ordered: movementData.quantity,
+      quantity_returned: 0,
+      work_start_date: movementData.movement_date,
+      completion_date: '',
+      status: 'pending',
+      notes: [
+        'Auto-created from Material Inventory',
+        movementData.purchase_order_number ? `P.O. No.: ${movementData.purchase_order_number}` : '',
+        movementData.document_number ? `Document No.: ${movementData.document_number}` : '',
+      ].filter(Boolean).join(' | '),
+    });
+  }
+
+  await updateStockQuantity(
+    movementData.item_name,
+    movementData.hsn_code,
+    movementData.movement_type === 'in' ? movementData.quantity : -movementData.quantity,
+  );
+  return data;
+}
+
+export async function updateMaterialInventoryMovement(
+  movementId: string,
+  movementData: MaterialInventoryMovementForm,
+): Promise<MaterialInventoryMovement> {
+  if (movementData.quantity <= 0) throw new Error('Quantity must be greater than zero');
+
+  const { data: existing, error: existingError } = await supabase
+    .from('material_inventory_movements')
+    .select('*')
+    .eq('id', movementId)
+    .single();
+
+  if (existingError) throw existingError;
+
+  const { data, error } = await supabase
+    .from('material_inventory_movements')
+    .update({
+      ...movementData,
+      document_date: movementData.document_date || null,
+      purchase_order_date: movementData.purchase_order_date || null,
+      eway_bill_date: movementData.eway_bill_date || null,
+      expected_delivery_date: movementData.expected_delivery_date || null,
+      hsn_code: movementData.hsn_code || null,
+      party_name: movementData.party_name || null,
+      document_number: movementData.document_number || null,
+      purchase_order_number: movementData.purchase_order_number || null,
+      total_amount: movementData.quantity * movementData.unit_price,
+      amount: movementData.amount || movementData.quantity * movementData.unit_price,
+      document_type: movementData.document_type || null,
+      notes: movementData.notes || null,
+    })
+    .eq('id', movementId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await updateStockQuantity(
+    existing.item_name,
+    existing.hsn_code,
+    existing.movement_type === 'in' ? -Number(existing.quantity) : Number(existing.quantity),
+  );
+  await updateStockQuantity(
+    movementData.item_name,
+    movementData.hsn_code,
+    movementData.movement_type === 'in' ? movementData.quantity : -movementData.quantity,
+  );
+
+  return data;
+}
+
+export async function deleteMaterialInventoryMovement(movementId: string): Promise<void> {
+  const { data: existing, error: existingError } = await supabase
+    .from('material_inventory_movements')
+    .select('item_name, hsn_code, quantity, movement_type')
+    .eq('id', movementId)
+    .single();
+
+  if (existingError) throw existingError;
+
+  const { error } = await supabase
+    .from('material_inventory_movements')
+    .delete()
+    .eq('id', movementId);
+
+  if (error) throw error;
+
+  await updateStockQuantity(
+    existing.item_name,
+    existing.hsn_code,
+    existing.movement_type === 'in' ? -Number(existing.quantity) : Number(existing.quantity),
+  );
+}
+
+export async function getAvailableMaterialInventory(companyName: string): Promise<MaterialInventoryMovement[]> {
+  const { data, error } = await supabase
+    .from('material_inventory_movements')
+    .select('*')
+    .eq('party_name', companyName)
+    .eq('movement_type', 'in')
+    .eq('inventory_status', 'completed')
+    .order('movement_date', { ascending: true });
+
+  if (error) throw error;
+  const { data: outward, error: outwardError } = await supabase
+    .from('material_inventory_movements')
+    .select('item_name, quantity, source_inward_id')
+    .eq('party_name', companyName)
+    .eq('movement_type', 'out');
+
+  if (outwardError) throw outwardError;
+  const usedByInward = new Map<string, number>();
+  const usedByItem = new Map<string, number>();
+  (outward || []).forEach((movement) => {
+    if (movement.source_inward_id) {
+      usedByInward.set(movement.source_inward_id, (usedByInward.get(movement.source_inward_id) || 0) + Number(movement.quantity));
+    }
+    usedByItem.set(movement.item_name, (usedByItem.get(movement.item_name) || 0) + Number(movement.quantity));
+  });
+
+  return (data || []).filter((movement) => {
+    const used = movement.id ? usedByInward.get(movement.id) || 0 : usedByItem.get(movement.item_name) || 0;
+    return Number(movement.quantity) - used > 0;
+  }).map((movement) => ({
+    ...movement,
+    quantity: Number(movement.quantity) - (movement.id ? usedByInward.get(movement.id) || 0 : usedByItem.get(movement.item_name) || 0),
+  }));
+}
+
+export async function getAvailableInwardItems(companyName: string): Promise<AvailableInwardItem[]> {
+  const { data, error } = await supabase
+    .from('inward_entries')
+    .select('id, inward_no, customer_name, status, inward_items(*)')
+    .eq('customer_name', companyName)
+    .not('status', 'in', '(cancelled,completed)');
+
+  if (error) throw error;
+  return (data || []).flatMap((entry: any) => (entry.inward_items || []).map((item: any) => {
+    const materialQty = Number(item.material_qty || 0);
+    const outwardQty = Number(item.outward_qty || 0);
+    return {
+      id: item.id,
+      inward_id: entry.id,
+      inward_no: entry.inward_no,
+      customer_name: entry.customer_name,
+      product_name: item.product_name,
+      description: item.description,
+      hsn_sac: item.hsn_sac,
+      material_qty: materialQty,
+      material_unit: item.material_unit || 'pcs',
+      material_rate: Number(item.material_rate || 0),
+      outward_qty: outwardQty,
+      available_qty: Math.max(0, materialQty - outwardQty),
+    };
+  })).filter((item) => item.available_qty > 0);
+}
+
+export async function createOutwardForBill(input: {
+  billId: string;
+  billNo: string;
+  outwardDate: string;
+  inwardId: string;
+  inwardItemId: string;
+  quantity: number;
+  exceptionStatus: 'completed' | 'pending' | 'in_process' | 'rejected';
+  exceptionRemark: string;
+}): Promise<void> {
+  const userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) throw new Error('User not authenticated');
+  const outwardNo = `OUT-${input.billNo}-${input.inwardItemId.slice(0, 6)}`;
+  const { data: outward, error } = await supabase.from('outward_entries').insert({
+    user_id: userId,
+    outward_no: outwardNo,
+    inward_id: input.inwardId,
+    bill_id: input.billId,
+    outward_date: input.outwardDate || null,
+    status: input.exceptionStatus === 'rejected' ? 'cancelled' : 'confirmed',
+    exception_status: input.exceptionStatus,
+    exception_remark: input.exceptionRemark || null,
+  }).select('id').single();
+  if (error) throw error;
+
+  const { error: itemError } = await supabase.from('outward_items').insert({
+    outward_id: outward.id,
+    inward_item_id: input.inwardItemId,
+    quantity: input.quantity,
+  });
+  if (itemError) throw itemError;
+
+  const { data: inwardItem, error: inwardError } = await supabase
+    .from('inward_items')
+    .select('material_qty, outward_qty')
+    .eq('id', input.inwardItemId)
+    .single();
+  if (inwardError) throw inwardError;
+  const newOutwardQty = Number(inwardItem.outward_qty || 0) + (input.exceptionStatus === 'rejected' ? 0 : input.quantity);
+  const { error: updateError } = await supabase.from('inward_items').update({ outward_qty: newOutwardQty }).eq('id', input.inwardItemId);
+  if (updateError) throw updateError;
+  const inwardStatus = input.exceptionStatus === 'in_process' ? 'in_process' : input.exceptionStatus === 'pending' ? 'processing' : newOutwardQty >= Number(inwardItem.material_qty) ? 'completed' : 'partially_outward';
+  await supabase.from('inward_entries').update({ status: inwardStatus, updated_at: new Date().toISOString() }).eq('id', input.inwardId);
 }
 
 async function updateStockQuantity(itemName: string, hsnCode: string, quantityChange: number): Promise<void> {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -19,9 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Eye, Trash2, Search, FileText } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Search, FileText, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getWorkOrders, deleteWorkOrder } from '@/db/workOrder';
+import { getWorkOrders, deleteWorkOrder, updateWorkOrder } from '@/db/workOrder';
 import type { WorkOrder } from '@/types';
 
 export default function WorkOrderListPage() {
@@ -30,6 +31,10 @@ export default function WorkOrderListPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [setupOrder, setSetupOrder] = useState<WorkOrder | null>(null);
+  const [setupCount, setSetupCount] = useState(0);
+  const [setupCompleted, setSetupCompleted] = useState(0);
+  const [setupSaving, setSetupSaving] = useState(false);
   const navigate = useNavigate();
 
   const loadWorkOrders = async () => {
@@ -75,6 +80,31 @@ export default function WorkOrderListPage() {
       loadWorkOrders();
     } else {
       toast.error('Failed to delete work order');
+    }
+  };
+
+  const openSetup = (order: WorkOrder) => {
+    setSetupOrder(order);
+    setSetupCount(order.setup_count || 0);
+    setSetupCompleted(order.setup_completed || 0);
+  };
+
+  const handleSetupSave = async () => {
+    if (!setupOrder) return;
+    if (setupCount < 0 || setupCompleted < 0 || setupCompleted > setupCount) {
+      toast.error('Completed setups cannot be greater than required setups');
+      return;
+    }
+    setSetupSaving(true);
+    try {
+      await updateWorkOrder(setupOrder.id, { setup_count: setupCount, setup_completed: setupCompleted });
+      toast.success('Work order setup updated');
+      setSetupOrder(null);
+      await loadWorkOrders();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update setup');
+    } finally {
+      setSetupSaving(false);
     }
   };
 
@@ -163,8 +193,9 @@ export default function WorkOrderListPage() {
                     <TableHead className="whitespace-nowrap">Job Name</TableHead>
                     <TableHead className="whitespace-nowrap">Rate/Piece</TableHead>
                     <TableHead className="whitespace-nowrap">Qty Ordered</TableHead>
-                    <TableHead className="whitespace-nowrap">Qty Completed</TableHead>
+                    <TableHead className="whitespace-nowrap">Qty Completed / Setup</TableHead>
                     <TableHead className="whitespace-nowrap">Pending</TableHead>
+                    <TableHead className="whitespace-nowrap">Setup</TableHead>
                     <TableHead className="whitespace-nowrap">Status</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
                   </TableRow>
@@ -178,12 +209,18 @@ export default function WorkOrderListPage() {
                       <TableCell className="whitespace-nowrap">₹{order.rate_per_piece.toLocaleString()}</TableCell>
                       <TableCell className="whitespace-nowrap">{order.quantity_ordered}</TableCell>
                       <TableCell className="text-green-600 font-semibold whitespace-nowrap">
-                        {(order as any).quantity_completed || 0}
+                        {order.setup_count > 0 && (order.setup_completed || 0) < order.setup_count
+                          ? `Setup ${order.setup_completed || 0}/${order.setup_count}`
+                          : (order as any).quantity_completed || 0}
                       </TableCell>
                       <TableCell className="font-semibold text-primary whitespace-nowrap">
                         {(order as any).quantity_pending !== undefined 
                           ? (order as any).quantity_pending 
                           : order.outstanding_quantity}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <div className="text-sm font-medium">{order.setup_completed || 0}/{order.setup_count || 0}</div>
+                        <div className="text-xs text-muted-foreground">Setups</div>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">{getStatusBadge(order.status)}</TableCell>
                       <TableCell className="text-right whitespace-nowrap">
@@ -191,10 +228,26 @@ export default function WorkOrderListPage() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            onClick={() => navigate(`/work-orders/${order.id}/edit`)}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => navigate(`/work-orders/${order.id}`)}
                             title="View"
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openSetup(order)}
+                            title="Setup"
+                          >
+                            <Settings2 className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -214,6 +267,32 @@ export default function WorkOrderListPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!setupOrder} onOpenChange={(open) => !open && setSetupOrder(null)}>
+        <DialogContent className="w-[95vw] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Job Setup</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {setupOrder?.work_order_number} - {setupOrder?.job_name || 'Job'}
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="setup-count" className="text-sm font-medium">Required Setups</label>
+                <Input id="setup-count" type="number" min="0" value={setupCount} onChange={(event) => setSetupCount(Number(event.target.value) || 0)} />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="setup-completed" className="text-sm font-medium">Completed Setups</label>
+                <Input id="setup-completed" type="number" min="0" max={setupCount} value={setupCompleted} onChange={(event) => setSetupCompleted(Number(event.target.value) || 0)} />
+              </div>
+            </div>
+            <Button onClick={handleSetupSave} disabled={setupSaving} className="w-full">
+              {setupSaving ? 'Saving...' : 'Save Setup'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

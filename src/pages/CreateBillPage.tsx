@@ -14,9 +14,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { createBill, updateBill, getMyCustomers, createCustomer, checkSubscriptionStatus, getBillById } from '@/db/api';
+import { createBill, createOutwardForBill, getAvailableInwardItems, getAvailableMaterialInventory, updateBill, getMyCustomers, createCustomer, checkSubscriptionStatus, getBillById, getMyCompany } from '@/db/api';
+import { supabase } from '@/db/supabase';
 import { Loader2, Plus, Trash2, UserPlus, Crown } from 'lucide-react';
-import type { BillForm, BillItemForm, Customer, BillWithItems } from '@/types';
+import type { Bill, BillForm, BillItemForm, Customer, BillWithItems, AvailableInwardItem, MaterialInventoryMovement } from '@/types';
+import { createBillPdfBase64 } from '@/lib/paymentEmail';
 
 export default function CreateBillPage() {
   const [loading, setLoading] = useState(false);
@@ -28,6 +30,11 @@ export default function CreateBillPage() {
   const [isEdit, setIsEdit] = useState(false);
   const [editingBill, setEditingBill] = useState<BillWithItems | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
+  const [availableInventory, setAvailableInventory] = useState<AvailableInwardItem[]>([]);
+  const [selectedInventory, setSelectedInventory] = useState<Record<number, AvailableInwardItem>>({});
+  const [availableJobOrders, setAvailableJobOrders] = useState<MaterialInventoryMovement[]>([]);
+  const [selectedJobOrders, setSelectedJobOrders] = useState<Record<number, string>>({});
+  const [outwardMeta, setOutwardMeta] = useState<Record<number, { status: 'pending' | 'in_process' | 'rejected'; remark: string }>>({});
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -41,6 +48,8 @@ export default function CreateBillPage() {
       po_number: '',
       gst_type: 'cgst_sgst',
       tcs_applicable: false,
+      notes: '',
+      notes_format: 'paragraph',
       payment_status: 'pending',
       payment_reminder: 'none',
       items: [
@@ -101,6 +110,8 @@ export default function CreateBillPage() {
         po_number: bill.po_number || '',
         gst_type: bill.gst_type as 'cgst_sgst' | 'igst',
         tcs_applicable: bill.tcs_applicable,
+        notes: bill.notes || '',
+        notes_format: bill.notes_format || 'paragraph',
         payment_status: bill.payment_status,
         payment_reminder: bill.payment_reminder,
         items: bill.bill_items.map(item => ({
@@ -149,7 +160,47 @@ export default function CreateBillPage() {
       form.setValue('customer_address', customer.address || '');
       form.setValue('customer_gst_number', customer.gst_number || '');
       form.setValue('customer_email', customer.contact_email || '');
+      getAvailableInwardItems(customer.company_name)
+        .then(setAvailableInventory)
+        .catch(() => setAvailableInventory([]));
+      getAvailableMaterialInventory(customer.company_name)
+        .then((movements) => setAvailableJobOrders(movements.filter((movement) => movement.purchase_order_number || movement.order_number || movement.order_id)))
+        .catch(() => setAvailableJobOrders([]));
     }
+  };
+
+  const handleInventorySelect = (index: number, inventoryId: string) => {
+    const inventory = availableInventory.find((item) => item.id === inventoryId);
+    if (!inventory) return;
+    setSelectedInventory((current) => ({ ...current, [index]: inventory }));
+    form.setValue(`items.${index}.hsn_code`, inventory.hsn_sac || '');
+    form.setValue(`items.${index}.item_name`, inventory.product_name || inventory.description);
+    form.setValue(`items.${index}.quantity`, Number(inventory.available_qty));
+    form.setValue(`items.${index}.unit`, inventory.material_unit);
+    form.setValue(`items.${index}.unit_price`, Number(inventory.material_rate));
+  };
+
+  const handleJobOrderSelect = (index: number, movementId: string) => {
+    const movement = availableJobOrders.find((item) => item.id === movementId);
+    if (!movement) return;
+    const purchaseOrderNumber = movement.purchase_order_number || movement.order_number || movement.order_id || '';
+    setSelectedJobOrders((current) => ({ ...current, [index]: movementId }));
+    if (purchaseOrderNumber) {
+      setShowPoNumber(true);
+      form.setValue('po_number', purchaseOrderNumber);
+    }
+    form.setValue(`items.${index}.hsn_code`, movement.hsn_code || '');
+    form.setValue(`items.${index}.item_name`, movement.item_name);
+    form.setValue(`items.${index}.quantity`, Number(movement.quantity));
+    form.setValue(`items.${index}.unit`, movement.unit || 'Nos');
+    form.setValue(`items.${index}.unit_price`, Number(movement.unit_price || 0));
+  };
+
+  const updateOutwardMeta = (index: number, field: 'status' | 'remark', value: string) => {
+    setOutwardMeta((current) => ({
+      ...current,
+      [index]: { status: current[index]?.status || 'pending', remark: current[index]?.remark || '', [field]: value },
+    }));
   };
 
   const handleAddNewCustomer = async (data: any) => {
@@ -248,18 +299,108 @@ export default function CreateBillPage() {
     setLoading(true);
     try {
       if (isEdit && id && editingBill) {
-        await updateBill(id, data, editingBill.bill_items);
-        toast.success('Bill updated successfully');
+        const bill = await updateBill(id, data, editingBill.bill_items);
+        await saveInventoryOutward(data, bill);
+        if (data.payment_reminder === 'now') {
+          try {
+            await sendPaymentReminderEmail(bill);
+          } catch (emailError: any) {
+            toast.error(`Bill updated, but email failed: ${emailError.message}`);
+            navigate(`/bills/${id}`);
+            return;
+          }
+        }
+        toast.success(data.payment_reminder === 'now' ? 'Bill updated and payment reminder sent' : 'Bill updated successfully');
         navigate(`/bills/${id}`);
       } else {
         const bill = await createBill(data);
-        toast.success('Bill created successfully');
+        await saveInventoryOutward(data, bill);
+        if (data.payment_reminder === 'now') {
+          try {
+            await sendPaymentReminderEmail(bill);
+          } catch (emailError: any) {
+            toast.error(`Bill created, but email failed: ${emailError.message}`);
+            navigate(`/bills/${bill.id}`);
+            return;
+          }
+        }
+        toast.success(data.payment_reminder === 'now' ? 'Bill created and payment reminder sent' : 'Bill created successfully');
         navigate(`/bills/${bill.id}`);
       }
     } catch (error: any) {
       toast.error(error.message || (isEdit ? 'Failed to update bill' : 'Failed to create bill'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveInventoryOutward = async (data: BillForm, bill: Bill) => {
+    const rows = Object.entries(selectedInventory);
+    for (const [indexText, inventory] of rows) {
+      const index = Number(indexText);
+      const item = data.items[index];
+      if (!item) continue;
+      const quantityChanged = Number(item.quantity) !== Number(inventory.available_qty);
+      const rateChanged = Number(item.unit_price) !== Number(inventory.material_rate);
+      const meta = outwardMeta[index];
+      if (Number(item.quantity) > Number(inventory.available_qty)) {
+        throw new Error(`${inventory.product_name || inventory.description} quantity cannot exceed available inward quantity (${inventory.available_qty})`);
+      }
+      if ((quantityChanged || rateChanged) && (!meta?.status || !meta.remark.trim())) {
+        throw new Error(`Please select status and add a remark for ${inventory.product_name || inventory.description}`);
+      }
+      await createOutwardForBill({
+        billId: bill.id,
+        billNo: bill.bill_no,
+        outwardDate: data.bill_date,
+        inwardId: inventory.inward_id,
+        inwardItemId: inventory.id,
+        quantity: Number(item.quantity),
+        exceptionStatus: meta?.status || 'completed',
+        exceptionRemark: String(meta?.remark ?? ''),
+      });
+    }
+  };
+
+  const sendPaymentReminderEmail = async (bill: Bill) => {
+    if (!bill.customer_email) {
+      throw new Error('Customer email is required to send a payment reminder');
+    }
+
+    const [fullBill, company] = await Promise.all([getBillById(bill.id), getMyCompany()]);
+    if (!fullBill || !company) {
+      throw new Error('Bill or company details are missing for the email');
+    }
+    const pdfBase64 = await createBillPdfBase64(fullBill, company);
+
+    const { error } = await supabase.functions.invoke('send-payment-email', {
+      body: {
+        type: 'reminder',
+        billId: bill.id,
+        customerEmail: bill.customer_email,
+        customerName: bill.customer_name,
+        billNo: bill.bill_no,
+        amount: bill.grand_total,
+        companyName: company.company_name,
+        pdfBase64,
+        pdfFilename: `Bill_${bill.bill_no}.pdf`,
+      },
+    });
+
+    if (error) {
+      let message = error.message;
+      const response = error.context as Response | undefined;
+
+      if (response) {
+        try {
+          const responseBody = await response.json();
+          message = responseBody.error || message;
+        } catch {
+          // Keep the original Supabase error when the response is not JSON.
+        }
+      }
+
+      throw new Error(message);
     }
   };
 
@@ -624,6 +765,7 @@ export default function CreateBillPage() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="now">Now</SelectItem>
                           <SelectItem value="7_days">7 Days</SelectItem>
                           <SelectItem value="30_days">30 Days</SelectItem>
                           <SelectItem value="45_days">45 Days</SelectItem>
@@ -694,18 +836,51 @@ export default function CreateBillPage() {
                       return (
                         <TableRow key={field.id}>
                           <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`items.${index}.item_name`}
-                              rules={{ required: 'Required' }}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input {...field} placeholder="Item name" />
-                                  </FormControl>
-                                </FormItem>
+                            {availableInventory.length > 0 && (
+                              <Select value={selectedInventory[index]?.id || ''} onValueChange={(value) => handleInventorySelect(index, value)}>
+                                <SelectTrigger className="mb-2"><SelectValue placeholder="Select inward item" /></SelectTrigger>
+                                <SelectContent>
+                                  {availableInventory.map((inventory) => (
+                                    <SelectItem key={inventory.id} value={inventory.id}>
+                                      {inventory.product_name || inventory.description} ({Number(inventory.available_qty)} {inventory.material_unit})
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            <div className="flex items-start gap-2">
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.item_name`}
+                                rules={{ required: 'Required' }}
+                                render={({ field }) => (
+                                  <FormItem className="min-w-0 flex-1">
+                                    <FormControl>
+                                      <Input {...field} placeholder="Item name" />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              {availableJobOrders.length > 0 && (
+                                <Select value={selectedJobOrders[index] || ''} onValueChange={(value) => handleJobOrderSelect(index, value)}>
+                                  <SelectTrigger className="w-40 shrink-0" aria-label="Select job order">
+                                    <SelectValue placeholder="Job Order" />
+                                  </SelectTrigger>
+                                  <SelectContent className="w-[360px] max-w-[calc(100vw-2rem)]">
+                                    {availableJobOrders.map((movement) => (
+                                      <SelectItem
+                                        key={movement.id}
+                                        value={movement.id}
+                                        className="max-w-[340px] truncate pr-8"
+                                        title={`${movement.purchase_order_number || movement.order_number || movement.order_id} - ${movement.item_name} (${Number(movement.quantity)} ${movement.unit})`}
+                                      >
+                                        {(movement.purchase_order_number || movement.order_number || movement.order_id)} - {movement.item_name} ({Number(movement.quantity)} {movement.unit})
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               )}
-                            />
+                            </div>
                           </TableCell>
                           <TableCell>
                             <FormField
@@ -719,19 +894,33 @@ export default function CreateBillPage() {
                                 </FormItem>
                               )}
                             />
+                            {selectedInventory[index] && (Number(item.quantity) !== Number(selectedInventory[index].available_qty) || Number(item.unit_price) !== Number(selectedInventory[index].material_rate)) && (
+                              <div className="mt-2 space-y-2 rounded-md border p-2">
+                                <Label className="text-xs">Outward status</Label>
+                                <Select value={outwardMeta[index]?.status || 'pending'} onValueChange={(value) => updateOutwardMeta(index, 'status', value)}>
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="in_process">In Process</SelectItem>
+                                    <SelectItem value="rejected">Rejected</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Input value={outwardMeta[index]?.remark || ''} onChange={(event) => updateOutwardMeta(index, 'remark', event.target.value)} placeholder="Reason / remark" />
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             <FormField
                               control={form.control}
                               name={`items.${index}.quantity`}
-                              rules={{ required: 'Required', min: { value: 0.01, message: 'Min 0.01' } }}
+                              rules={{ required: 'Required', min: { value: 0.001, message: 'Min 0.001' } }}
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
                                     <Input
                                       {...field}
                                       type="number"
-                                      step="0.01"
+                                      step="0.001"
                                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                                     />
                                   </FormControl>
@@ -904,6 +1093,50 @@ export default function CreateBillPage() {
                     <span>Grand Total:</span>
                     <span>₹{totals.grandTotal.toFixed(2)}</span>
                   </div>
+                </div>
+              </div>
+
+              <div className="mt-6 border-t pt-6">
+                <div className="grid gap-4 md:grid-cols-[180px_1fr] md:items-start">
+                  <FormField
+                    control={form.control}
+                    name="notes_format"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Note Type (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select note type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="paragraph">Paragraph</SelectItem>
+                            <SelectItem value="bullet">Bullet Points</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Note</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            rows={3}
+                            placeholder={form.watch('notes_format') === 'bullet'
+                              ? 'Add one point per line'
+                              : 'Add an optional note for this bill'}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </div>
             </CardContent>

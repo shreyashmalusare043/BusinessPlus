@@ -34,6 +34,7 @@ export default function WorkTrackingPage() {
       jobs_completed: 0,
       notes: '',
       work_order_id: '',
+      setup_number: null,
       quantity_completed: 0,
     },
   });
@@ -112,6 +113,7 @@ export default function WorkTrackingPage() {
       jobs_completed: log.jobs_completed,
       notes: log.notes || '',
       work_order_id: log.work_order_id || '',
+      setup_number: log.setup_number || null,
       quantity_completed: log.quantity_completed || 0,
     });
     setDialogOpen(true);
@@ -121,6 +123,7 @@ export default function WorkTrackingPage() {
     if (workOrderId === 'none') {
       setSelectedWorkOrder(null);
       form.setValue('work_order_id', '');
+      form.setValue('setup_number', null);
       return;
     }
     
@@ -129,9 +132,11 @@ export default function WorkTrackingPage() {
       setSelectedWorkOrder(workOrder);
       form.setValue('company_name', workOrder.company_name);
       form.setValue('work_order_id', workOrderId);
+      form.setValue('setup_number', workOrder.setup_count > 0 ? 1 : null);
     } else {
       setSelectedWorkOrder(null);
       form.setValue('work_order_id', '');
+      form.setValue('setup_number', null);
     }
   };
 
@@ -145,6 +150,7 @@ export default function WorkTrackingPage() {
       jobs_completed: 0,
       notes: '',
       work_order_id: '',
+      setup_number: null,
       quantity_completed: 0,
     });
     setEditingLog(null);
@@ -189,12 +195,12 @@ export default function WorkTrackingPage() {
               Add Work Log
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+          <DialogContent className="w-[calc(100vw-2rem)] max-w-xl max-h-[90vh] overflow-x-hidden overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle className="text-lg sm:text-xl">{editingLog ? 'Edit Work Log' : 'Add Work Log'}</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="min-w-0 space-y-3 sm:space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -250,14 +256,14 @@ export default function WorkTrackingPage() {
                         }}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="min-w-0">
                             <SelectValue placeholder="Select work order" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="w-[min(32rem,calc(100vw-3rem))] max-w-[calc(100vw-3rem)]">
                           <SelectItem value="none">None</SelectItem>
                           {workOrders.map((order) => (
-                            <SelectItem key={order.id} value={order.id}>
+                            <SelectItem key={order.id} value={order.id} className="max-w-[min(30rem,calc(100vw-4rem))] truncate">
                               {order.work_order_number} - {order.company_name} ({order.job_name || 'No job name'})
                             </SelectItem>
                           ))}
@@ -298,6 +304,12 @@ export default function WorkTrackingPage() {
                           </p>
                         </div>
                         <div>
+                          <span className="text-muted-foreground">Job Setup:</span>
+                          <p className="font-medium text-primary">
+                            {selectedWorkOrder.setup_completed || 0} / {selectedWorkOrder.setup_count || 0} completed
+                          </p>
+                        </div>
+                        <div>
                           <span className="text-muted-foreground">Rate:</span>
                           <p className="font-medium">₹{selectedWorkOrder.rate_per_piece}/piece</p>
                         </div>
@@ -327,6 +339,34 @@ export default function WorkTrackingPage() {
 
                 {/* Quantity Completed (only show if work order is selected) */}
                 {selectedWorkOrder && (
+                  <>
+                    {selectedWorkOrder.setup_count > 0 && (
+                      <FormField
+                        control={form.control}
+                        name="setup_number"
+                        rules={{ required: 'Setup selection is required' }}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Select Setup</FormLabel>
+                            <Select value={field.value ? String(field.value) : ''} onValueChange={(value) => field.onChange(Number(value))}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select setup" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {Array.from({ length: selectedWorkOrder.setup_count }, (_, index) => index + 1).map((setupNumber) => (
+                                  <SelectItem key={setupNumber} value={String(setupNumber)}>
+                                    Setup {setupNumber}{setupNumber <= (selectedWorkOrder.setup_completed || 0) ? ' - Completed' : ''}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   <FormField
                     control={form.control}
                     name="quantity_completed"
@@ -355,6 +395,7 @@ export default function WorkTrackingPage() {
                       </FormItem>
                     )}
                   />
+                  </>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

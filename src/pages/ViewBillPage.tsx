@@ -115,7 +115,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
                 <td className="py-3 px-2 text-sm text-gray-600">{index + 1}</td>
                 <td className="py-3 px-2 text-sm font-medium text-gray-900">{item.item_name}</td>
                 <td className="py-3 px-2 text-sm text-center text-gray-600">{item.hsn_code}</td>
-                <td className="py-3 px-2 text-sm text-center text-gray-600">{item.quantity}</td>
+                <td className="py-3 px-2 text-sm text-center text-gray-600">{Number(item.quantity).toFixed(3)}</td>
                 <td className="py-3 px-2 text-sm text-center text-gray-600">{item.unit}</td>
                 <td className="py-3 px-2 text-sm text-right text-gray-600">₹{item.unit_price.toFixed(2)}</td>
                 <td className="py-3 px-2 text-sm text-right font-semibold text-gray-900">₹{itemSubtotal.toFixed(2)}</td>
@@ -177,6 +177,21 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
         <span className="font-bold text-sm md:text-base">Total Amount</span>
         <span className="font-bold text-lg md:text-xl">₹{bill.grand_total.toFixed(2)}</span>
       </div>
+
+      {bill.notes && (
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-700">Note</p>
+          {bill.notes_format === 'bullet' ? (
+            <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
+              {bill.notes.split('\n').filter(Boolean).map((note, index) => (
+                <li key={`${note}-${index}`}>{note}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="whitespace-pre-wrap text-sm text-gray-600">{bill.notes}</p>
+          )}
+        </div>
+      )}
 
     </div>
   </div>

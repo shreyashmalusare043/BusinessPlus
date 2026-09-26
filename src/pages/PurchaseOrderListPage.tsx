@@ -27,6 +27,7 @@ export default function PurchaseOrderListPage() {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
+  const [paymentStatus, setPaymentStatus] = useState<'all' | 'paid' | 'unpaid'>('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,6 +64,10 @@ export default function PurchaseOrderListPage() {
       filtered = filtered.filter(po => selectedSuppliers.includes(po.supplier_name));
     }
 
+    if (paymentStatus !== 'all') {
+      filtered = filtered.filter(po => (po.payment_status || 'unpaid') === paymentStatus);
+    }
+
     // Filter by inclusive purchase order date range. po_date is stored as YYYY-MM-DD.
     if (filterFromDate) {
       filtered = filtered.filter(po => po.po_date >= filterFromDate);
@@ -83,11 +88,12 @@ export default function PurchaseOrderListPage() {
     }
 
     return filtered;
-  }, [pos, selectedSuppliers, searchQuery, filterFromDate, filterToDate]);
+  }, [pos, selectedSuppliers, paymentStatus, searchQuery, filterFromDate, filterToDate]);
 
   const handleClearFilters = () => {
     setSearchQuery('');
     setSelectedSuppliers([]);
+    setPaymentStatus('all');
     setFilterFromDate('');
     setFilterToDate('');
   };
@@ -135,7 +141,22 @@ export default function PurchaseOrderListPage() {
 
     setExportLoading(true);
     try {
-      const posData = await getPurchaseOrdersByDateRange(startDate, endDate);
+      let posData = await getPurchaseOrdersByDateRange(startDate, endDate);
+      if (selectedSuppliers.length > 0) {
+        posData = posData.filter(po => selectedSuppliers.includes(po.supplier_name));
+      }
+      if (paymentStatus !== 'all') {
+        posData = posData.filter(po => (po.payment_status || 'unpaid') === paymentStatus);
+      }
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        posData = posData.filter(po =>
+          po.po_no.toLowerCase().includes(query) ||
+          (po.invoice_no && po.invoice_no.toLowerCase().includes(query)) ||
+          po.supplier_name.toLowerCase().includes(query) ||
+          po.grand_total.toString().includes(query)
+        );
+      }
 
       if (posData.length === 0) {
         toast.info('No purchase orders found in the selected date range');
@@ -315,6 +336,49 @@ export default function PurchaseOrderListPage() {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
+                  <Label htmlFor="export-company" className="text-sm">Filter by Company</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button id="export-company" variant="outline" className="w-full justify-between text-sm font-normal">
+                        <span className="truncate">
+                          {selectedSuppliers.length === 0
+                            ? 'All Companies'
+                            : `${selectedSuppliers.length} compan${selectedSuppliers.length === 1 ? 'y' : 'ies'} selected`}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56">
+                      {suppliers.length === 0 ? (
+                        <DropdownMenuCheckboxItem disabled>No companies available</DropdownMenuCheckboxItem>
+                      ) : (
+                        suppliers.map((supplier) => (
+                          <DropdownMenuCheckboxItem
+                            key={supplier.id}
+                            checked={selectedSuppliers.includes(supplier.company_name)}
+                            onCheckedChange={() => toggleSupplier(supplier.company_name)}
+                          >
+                            {supplier.company_name}
+                          </DropdownMenuCheckboxItem>
+                        ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="export-payment-status" className="text-sm">Payment Status</Label>
+                  <Select value={paymentStatus} onValueChange={(value) => setPaymentStatus(value as 'all' | 'paid' | 'unpaid')}>
+                    <SelectTrigger id="export-payment-status" className="text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Purchase</SelectItem>
+                      <SelectItem value="paid">Paid Purchase</SelectItem>
+                      <SelectItem value="unpaid">Unpaid Purchase</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="start-date" className="text-sm">From Date</Label>
                   <Input
                     id="start-date"
@@ -373,7 +437,7 @@ export default function PurchaseOrderListPage() {
 
             {/* Supplier Filter */}
             <div className="flex-1">
-              <Label htmlFor="supplier-filter" className="text-xs sm:text-sm mb-2 block">Filter by Supplier</Label>
+              <Label htmlFor="supplier-filter" className="text-xs sm:text-sm mb-2 block">Filter by Company</Label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button id="supplier-filter" variant="outline" className="w-full justify-between text-sm font-normal">
@@ -427,8 +491,22 @@ export default function PurchaseOrderListPage() {
               />
             </div>
 
+            <div className="flex-1">
+              <Label htmlFor="payment-status-filter" className="text-xs sm:text-sm mb-2 block">Payment Status</Label>
+              <Select value={paymentStatus} onValueChange={(value) => setPaymentStatus(value as 'all' | 'paid' | 'unpaid')}>
+                <SelectTrigger id="payment-status-filter" className="text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Purchase</SelectItem>
+                  <SelectItem value="paid">Paid Purchase</SelectItem>
+                  <SelectItem value="unpaid">Unpaid Purchase</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Clear Filters Button */}
-            {(searchQuery || selectedSuppliers.length > 0 || filterFromDate || filterToDate) && (
+            {(searchQuery || selectedSuppliers.length > 0 || paymentStatus !== 'all' || filterFromDate || filterToDate) && (
               <div className="flex items-end lg:col-span-4">
                 <Button
                   variant="outline"
@@ -444,7 +522,7 @@ export default function PurchaseOrderListPage() {
           </div>
 
           {/* Results Count */}
-          {(searchQuery || selectedSuppliers.length > 0 || filterFromDate || filterToDate) && (
+          {(searchQuery || selectedSuppliers.length > 0 || paymentStatus !== 'all' || filterFromDate || filterToDate) && (
             <div className="mt-3 sm:mt-4">
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Showing {filteredPOs.length} of {pos.length} purchase orders

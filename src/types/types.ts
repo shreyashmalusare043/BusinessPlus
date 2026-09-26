@@ -2,7 +2,7 @@
 
 export type UserRole = 'user' | 'admin';
 export type PaymentStatus = 'pending' | 'paid' | 'unpaid';
-export type PaymentReminder = 'none' | '7_days' | '30_days' | '45_days' | '90_days';
+export type PaymentReminder = 'none' | 'now' | '7_days' | '30_days' | '45_days' | '90_days';
 export type WorkType = 'outsource' | 'inhouse';
 export type SubscriptionPlan = 'free' | 'monthly' | 'yearly';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled';
@@ -46,6 +46,23 @@ export interface Transaction {
   razorpay_payment_id: string | null;
   razorpay_signature: string | null;
   amount: number;
+  customer_name: string | null;
+  customer_address: string | null;
+  customer_gstin: string | null;
+  customer_state: string | null;
+  customer_state_code: string | null;
+  job_work_supplier: string | null;
+  supplier_code: string | null;
+  supplier_gstin: string | null;
+  process_nature: string | null;
+  process_quantity: number | null;
+  process_rate: number | null;
+  process_value: number | null;
+  material_quantity: number | null;
+  material_rate: number | null;
+  material_value: number | null;
+  gst_rate: number | null;
+  expected_delivery_date: string | null;
   currency: string;
   payment_method: string | null;
   status: TransactionStatus;
@@ -195,6 +212,178 @@ export interface StockItem {
   updated_at: string;
 }
 
+export type MaterialMovementType = 'in' | 'out';
+export type MaterialMovementSource = 'manual' | 'challan' | 'bill' | 'purchase_order';
+
+export interface MaterialInventoryMovement {
+  id: string;
+  user_id: string;
+  movement_type: MaterialMovementType;
+  movement_date: string;
+  item_name: string;
+  hsn_code: string | null;
+  quantity: number;
+  unit: string;
+  unit_price: number;
+  total_amount: number;
+  party_name: string | null;
+  document_number: string | null;
+  purchase_order_number: string | null;
+  party_gstin: string | null;
+  party_address: string | null;
+  document_date: string | null;
+  order_number: string | null;
+  order_id: string | null;
+  purchase_order_date: string | null;
+  vehicle_number: string | null;
+  transporter_name: string | null;
+  eway_bill_number: string | null;
+  item_description: string | null;
+  product_id: string | null;
+  batch_number: string | null;
+  drawing_number: string | null;
+  drawing_revision: string | null;
+  amount: number;
+  document_type: string | null;
+  document_id: string | null;
+  source: MaterialMovementSource;
+  inventory_status: 'completed' | 'pending' | 'in_process' | 'rejected';
+  inventory_remark: string | null;
+  source_inward_id: string | null;
+  related_bill_id: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface MaterialInventoryMovementForm {
+  movement_type: MaterialMovementType;
+  movement_date: string;
+  item_name: string;
+  hsn_code: string;
+  quantity: number;
+  unit: string;
+  unit_price: number;
+  party_name: string;
+  document_number: string;
+  purchase_order_number: string;
+  party_gstin?: string;
+  party_address?: string;
+  document_date?: string;
+  order_number?: string;
+  order_id?: string;
+  purchase_order_date?: string;
+  vehicle_number?: string;
+  transporter_name?: string;
+  eway_bill_number?: string;
+  eway_bill_date?: string;
+  item_description?: string;
+  product_id?: string;
+  batch_number?: string;
+  drawing_number?: string;
+  drawing_revision?: string;
+  amount?: number;
+  needs_verification?: string[];
+  customer_name?: string;
+  customer_address?: string;
+  customer_gstin?: string;
+  customer_state?: string;
+  customer_state_code?: string;
+  job_work_supplier?: string;
+  supplier_code?: string;
+  supplier_gstin?: string;
+  process_nature?: string;
+  process_quantity?: number;
+  process_rate?: number;
+  process_value?: number;
+  material_quantity?: number;
+  material_rate?: number;
+  material_value?: number;
+  gst_rate?: number;
+  expected_delivery_date?: string;
+  document_type: string;
+  notes: string;
+  inventory_status?: 'completed' | 'pending' | 'in_process' | 'rejected';
+  inventory_remark?: string;
+  source_inward_id?: string;
+  related_bill_id?: string;
+}
+
+export type InwardStatus = 'draft' | 'processing' | 'verification_required' | 'received' | 'in_process' | 'ready_for_outward' | 'partially_outward' | 'completed' | 'cancelled';
+
+export interface InwardItemForm {
+  product_name: string;
+  product_code: string;
+  description: string;
+  hsn_sac: string;
+  gst_rate: number | null;
+  nature_of_process: string;
+  process_qty: number | null;
+  process_unit: string;
+  process_rate: number | null;
+  process_value: number | null;
+  material_qty: number;
+  material_unit: string;
+  material_rate: number | null;
+  material_value: number | null;
+  drawing_no: string;
+  drawing_revision_no: string;
+  expected_delivery_date: string;
+  remarks: string;
+}
+
+export interface InwardEntryForm {
+  challan_no: string;
+  challan_date: string;
+  document_no: string;
+  document_date: string;
+  customer_name: string;
+  customer_gstin: string;
+  customer_address: string;
+  customer_state: string;
+  customer_state_code: string;
+  vehicle_no: string;
+  transporter: string;
+  eway_bill_no: string;
+  eway_bill_date: string;
+  supplier_name: string;
+  supplier_code: string;
+  supplier_gstin: string;
+  po_no: string;
+  po_date: string;
+  order_no: string;
+  order_id: string;
+  job_order_no: string;
+  job_order_item_no: string;
+  received_date: string;
+  items: InwardItemForm[];
+}
+
+export interface InwardEntry extends InwardEntryForm {
+  id: string;
+  user_id: string;
+  inward_no: string;
+  status: InwardStatus;
+  original_document_url: string | null;
+  extraction_status: 'pending' | 'processing' | 'completed' | 'failed';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AvailableInwardItem {
+  id: string;
+  inward_id: string;
+  inward_no: string;
+  customer_name: string;
+  product_name: string | null;
+  description: string;
+  hsn_sac: string | null;
+  material_qty: number;
+  material_unit: string;
+  material_rate: number;
+  outward_qty: number;
+  available_qty: number;
+}
+
 // Form types for creating/editing
 export interface BillItemForm {
   item_name: string;
@@ -240,6 +429,7 @@ export interface PurchaseOrderForm {
   supplier_gst_number: string;
   invoice_no: string;
   po_date: string;
+  payment_status: 'paid' | 'unpaid';
   status?: 'pending' | 'confirmed' | 'revised';
   classification: PurchaseOrderClassification;
   gst_type: 'cgst_sgst' | 'igst';
@@ -310,6 +500,7 @@ export interface WorkLog {
   jobs_completed: number;
   notes: string | null;
   work_order_id: string | null;
+  setup_number: number | null;
   quantity_completed: number;
   created_at: string;
   updated_at: string;
@@ -323,6 +514,7 @@ export interface WorkLogForm {
   jobs_completed: number;
   notes: string;
   work_order_id: string;
+  setup_number: number | null;
   quantity_completed: number;
 }
 
@@ -374,6 +566,7 @@ export interface DeliveryChallan {
   party_address: string | null;
   party_gst: string | null;
   party_state: string | null;
+  vehicle_number: string | null;
   purpose: DeliveryChallanPurpose;
   created_at: string;
   updated_at: string;
@@ -401,6 +594,7 @@ export interface DeliveryChallanForm {
   party_address: string;
   party_gst: string;
   party_state: string;
+  vehicle_number: string;
   purpose: DeliveryChallanPurpose;
   items: DeliveryChallanItemForm[];
 }
@@ -479,6 +673,8 @@ export interface WorkOrder {
   total_value: number;
   quantity_ordered: number;
   quantity_returned: number;
+  setup_count: number;
+  setup_completed: number;
   outstanding_quantity: number;
   work_start_date: string;
   completion_date: string | null;
@@ -507,6 +703,8 @@ export interface WorkOrderForm {
   total_value: number;
   quantity_ordered: number;
   quantity_returned: number;
+  setup_count?: number;
+  setup_completed?: number;
   work_start_date: string;
   completion_date: string;
   status: WorkOrderStatus;

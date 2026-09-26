@@ -99,6 +99,13 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
         </span>
       </div>
 
+      {challan.vehicle_number && (
+        <div className="flex justify-end gap-4">
+          <span className="text-sm font-semibold text-gray-500">Vehicle No:</span>
+          <span className="text-sm font-bold text-gray-900">{challan.vehicle_number}</span>
+        </div>
+      )}
+
     </div>
   </div>
 </div>

@@ -109,6 +109,8 @@ export async function createWorkOrder(workOrderData: WorkOrderForm): Promise<Wor
       total_value: workOrderData.total_value,
       quantity_ordered: workOrderData.quantity_ordered,
       quantity_returned: workOrderData.quantity_returned || 0,
+      setup_count: workOrderData.setup_count || 0,
+      setup_completed: workOrderData.setup_completed || 0,
       work_start_date: workOrderData.work_start_date,
       completion_date: workOrderData.completion_date || null,
       status: workOrderData.status || 'pending',

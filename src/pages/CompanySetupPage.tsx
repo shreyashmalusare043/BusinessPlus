@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { getMyCompany, createOrUpdateCompany } from '@/db/api';
 import { supabase } from '@/db/supabase';
 import type { CompanyForm } from '@/types';
-import { Loader2 } from 'lucide-react';
+import { Building2, Landmark, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function CompanySetupPage() {
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,6 @@ export default function CompanySetupPage() {
       bank_name: '',
       account_holder_name: '',
       account_number: '',
-      ifsc_code: '',
       branch_name: '',
       logo_url: null,
     },
@@ -113,19 +112,28 @@ export default function CompanySetupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle>Company Setup</CardTitle>
+    <div className="relative isolate flex min-h-screen items-start justify-center overflow-hidden bg-[linear-gradient(135deg,hsl(35_100%_97%)_0%,hsl(var(--background))_48%,hsl(24_95%_95%)_100%)] p-4 py-8 sm:p-8 dark:bg-[linear-gradient(135deg,hsl(var(--background))_0%,hsl(20_28%_12%)_55%,hsl(24_45%_16%)_100%)]">
+      <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(135deg,hsl(var(--primary)/.08)_25%,transparent_25%,transparent_50%,hsl(var(--primary)/.08)_50%,hsl(var(--primary)/.08)_75%,transparent_75%)] [background-size:36px_36px] dark:opacity-20" />
+      <div className="pointer-events-none absolute -left-24 top-16 h-48 w-[130%] rotate-[-8deg] border-y border-primary/10 bg-white/20 dark:bg-white/[.02]" />
+      <Card className="relative z-10 w-full max-w-4xl overflow-hidden border-0 shadow-2xl shadow-orange-950/10">
+        <CardHeader className="border-b bg-gradient-to-r from-primary/10 via-card to-card px-5 py-6 sm:px-8 sm:py-8">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Building2 className="h-6 w-6" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl sm:text-3xl">Company Settings</CardTitle>
           <CardDescription>
             {existingCompany
               ? 'Update your company details and GST information'
               : 'Set up your company details to get started'}
-          </CardDescription>
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-5 py-6 sm:px-8 sm:py-8">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
                 control={form.control}
                 name="gst_number"
@@ -218,8 +226,16 @@ export default function CompanySetupPage() {
                 )}
               />
 
-              <div className="space-y-4 border-t pt-4">
-                <h3 className="text-lg font-semibold">Bank Details</h3>
+              <div className="space-y-5 rounded-xl border bg-muted/20 p-5 sm:p-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Landmark className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Bank details</h3>
+                    <p className="text-sm text-muted-foreground">Used on invoices and payment documents.</p>
+                  </div>
+                </div>
                 
                 <FormField
                   control={form.control}
@@ -294,14 +310,17 @@ export default function CompanySetupPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Company Logo</Label>
-                <div className="flex items-center gap-4">
+              <div className="space-y-3 rounded-xl border border-dashed p-5 sm:p-6">
+                <div>
+                  <Label className="text-base">Company logo</Label>
+                  <p className="mt-1 text-sm text-muted-foreground">Upload a clear logo for your documents.</p>
+                </div>
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
                   {form.watch('logo_url') && (
                     <img
                       src={form.watch('logo_url') || ''}
                       alt="Company Logo"
-                      className="h-16 w-16 object-contain border rounded"
+                      className="h-20 w-20 rounded-lg border bg-white object-contain p-1"
                     />
                   )}
                   <Input
@@ -309,14 +328,15 @@ export default function CompanySetupPage() {
                     accept="image/*"
                     onChange={handleLogoUpload}
                     disabled={uploading}
+                    className="max-w-md bg-background"
                   />
                 </div>
-                {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
+                {uploading && <p className="text-sm text-primary">Uploading logo...</p>}
               </div>
 
               {/* Data Security Policy Checkbox - Only for new company setup */}
               {!existingCompany && (
-                <div className="flex items-start space-x-3 p-4 bg-muted rounded-lg">
+                <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
                   <input
                     type="checkbox"
                     id="agreeDataSecurity"
@@ -324,7 +344,8 @@ export default function CompanySetupPage() {
                     onChange={(e) => setAgreeToDataSecurity(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
                   />
-                  <label htmlFor="agreeDataSecurity" className="text-sm">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <label htmlFor="agreeDataSecurity" className="text-sm leading-6">
                     I have read and agree to the{' '}
                     <a 
                       href="/data-security-policy" 
@@ -339,13 +360,13 @@ export default function CompanySetupPage() {
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <Button type="submit" disabled={loading || uploading}>
+              <div className="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-end">
+                <Button type="submit" disabled={loading || uploading} className="sm:min-w-40">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   {existingCompany ? 'Update Company' : 'Complete Setup'}
                 </Button>
                 {existingCompany && (
-                  <Button type="button" variant="outline" onClick={() => navigate('/dashboard')}>
+                  <Button type="button" variant="outline" onClick={() => navigate('/dashboard')} className="sm:min-w-28">
                     Cancel
                   </Button>
                 )}

@@ -22,6 +22,7 @@ import ViewPurchaseOrderPage from './pages/ViewPurchaseOrderPage';
 import EditPurchaseOrderPage from './pages/EditPurchaseOrderPage';
 import ExpensesPage from './pages/ExpensesPage';
 import StockPage from './pages/StockPage';
+import MaterialInventoryPage from './pages/MaterialInventoryPage';
 import ReportsPage from './pages/ReportsPage';
 import UserManagementPage from './pages/UserManagementPage';
 import WorkTrackingPage from './pages/WorkTrackingPage';
@@ -223,6 +224,11 @@ const routes: RouteConfig[] = [
     name: 'Stock',
     path: '/stock',
     element: <StockPage />,
+  },
+  {
+    name: 'Material Inventory',
+    path: '/material-inventory',
+    element: <MaterialInventoryPage />,
   },
   {
     name: 'Reports',

@@ -10,9 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { createChallan, getChallanById, getMyCustomers, checkSubscriptionStatus, updateChallan } from '@/db/api';
+import { createChallan, getChallanById, getMyBillsWithItemsByCustomer, getMyCustomers, checkSubscriptionStatus, updateChallan } from '@/db/api';
 import { Loader2, Plus, Trash2, Crown } from 'lucide-react';
-import type { DeliveryChallanForm, DeliveryChallanItemForm, Customer } from '@/types';
+import type { BillWithItems, DeliveryChallanForm, DeliveryChallanItemForm, Customer } from '@/types';
 
 const purposeOptions = [
   { value: 'job_work', label: 'Job Work' },
@@ -28,6 +28,8 @@ export default function CreateChallanPage({ isEdit = false }: { isEdit?: boolean
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [hasPremium, setHasPremium] = useState(false);
   const [checkingPremium, setCheckingPremium] = useState(true);
+  const [availableBills, setAvailableBills] = useState<BillWithItems[]>([]);
+  const [selectedBillItems, setSelectedBillItems] = useState<Record<number, string>>({});
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -39,6 +41,7 @@ export default function CreateChallanPage({ isEdit = false }: { isEdit?: boolean
       party_address: '',
       party_gst: '',
       party_state: '',
+      vehicle_number: '',
       purpose: 'job_work',
       items: [
         {
@@ -73,6 +76,7 @@ export default function CreateChallanPage({ isEdit = false }: { isEdit?: boolean
         party_address: challan.party_address || '',
         party_gst: challan.party_gst || '',
         party_state: challan.party_state || '',
+        vehicle_number: challan.vehicle_number || '',
         purpose: challan.purpose,
         items: challan.challan_items.map((item) => ({
           item_name: item.item_name,
@@ -122,7 +126,22 @@ export default function CreateChallanPage({ isEdit = false }: { isEdit?: boolean
       form.setValue('party_name', customer.company_name);
       form.setValue('party_address', customer.address || '');
       form.setValue('party_gst', customer.gst_number || '');
+      getMyBillsWithItemsByCustomer(customer.company_name)
+        .then(setAvailableBills)
+        .catch(() => setAvailableBills([]));
     }
+  };
+
+  const handleBillItemSelect = (index: number, itemId: string) => {
+    const bill = availableBills.find((candidate) => candidate.bill_items.some((item) => item.id === itemId));
+    const item = bill?.bill_items.find((candidate) => candidate.id === itemId);
+    if (!bill || !item) return;
+    setSelectedBillItems((current) => ({ ...current, [index]: itemId }));
+    form.setValue(`items.${index}.item_name`, item.item_name);
+    form.setValue(`items.${index}.description`, item.description || '');
+    form.setValue(`items.${index}.hsn_code`, item.hsn_code || '');
+    form.setValue(`items.${index}.quantity`, Number(item.quantity));
+    form.setValue(`items.${index}.unit`, item.unit || 'Nos');
   };
 
   const onSubmit = async (data: DeliveryChallanForm) => {
@@ -299,6 +318,20 @@ export default function CreateChallanPage({ isEdit = false }: { isEdit?: boolean
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="vehicle_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vehicle No. (Optional)</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter vehicle number" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <FormField
@@ -374,9 +407,25 @@ export default function CreateChallanPage({ isEdit = false }: { isEdit?: boolean
                           rules={{ required: 'Required' }}
                           render={({ field }) => (
                             <FormItem>
-                              <FormControl>
-                                <Input {...field} placeholder="Item name" />
-                              </FormControl>
+                              <div className="flex items-start gap-2">
+                                <FormControl>
+                                  <Input {...field} placeholder="Item name" className="min-w-0 flex-1" />
+                                </FormControl>
+                                {availableBills.some((bill) => bill.bill_items.length > 0) && (
+                                  <Select value={selectedBillItems[index] || ''} onValueChange={(value) => handleBillItemSelect(index, value)}>
+                                    <SelectTrigger className="w-36 shrink-0" aria-label="Select item from bill">
+                                      <SelectValue placeholder="Bill Item" />
+                                    </SelectTrigger>
+                                    <SelectContent className="w-[360px] max-w-[calc(100vw-2rem)]">
+                                      {availableBills.flatMap((bill) => bill.bill_items.map((item) => (
+                                        <SelectItem key={item.id} value={item.id} className="max-w-[340px] truncate">
+                                          {bill.bill_no} - {item.item_name} ({Number(item.quantity)} {item.unit})
+                                        </SelectItem>
+                                      )))}
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                              </div>
                               <FormMessage />
                             </FormItem>
                           )}
