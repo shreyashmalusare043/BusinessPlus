@@ -27,7 +27,7 @@ export async function createBillPdfBase64(bill: BillWithItems, company: Company)
       </div>
       <div style="display:flex; justify-content:space-between; margin-bottom:24px;">
         <div><div style="color:#6b7280; font-size:10px;">BILL TO</div><strong>${escapeHtml(bill.customer_name)}</strong><div>${escapeHtml(bill.customer_address || '')}</div><div>${escapeHtml(bill.customer_gst_number || '')}</div></div>
-        <div style="text-align:right;"><div><strong>Invoice No:</strong> ${escapeHtml(bill.bill_no)}</div><div><strong>Date:</strong> ${escapeHtml(new Date(bill.bill_date).toLocaleDateString('en-GB'))}</div></div>
+        <div style="text-align:right;"><div><strong>Invoice No:</strong> ${escapeHtml(bill.bill_no)}</div><div><strong>Date:</strong> ${escapeHtml(new Date(bill.bill_date).toLocaleDateString('en-GB'))}</div>${bill.po_number ? `<div><strong>P.O. No:</strong> ${escapeHtml(bill.po_number)}</div>` : ''}${bill.delivery_challan_no ? `<div><strong>Delivery Challan No:</strong> ${escapeHtml(bill.delivery_challan_no)}</div>` : ''}${bill.delivery_challan_date ? `<div><strong>Delivery Challan Date:</strong> ${escapeHtml(new Date(bill.delivery_challan_date).toLocaleDateString('en-GB'))}</div>` : ''}</div>
       </div>
       <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
         <thead><tr style="border-bottom:2px solid #111827; text-align:left;"><th style="padding:8px 4px;">#</th><th style="padding:8px 4px;">Description</th><th style="padding:8px 4px;">HSN/SAC</th><th style="padding:8px 4px; text-align:right;">Qty</th><th style="padding:8px 4px; text-align:right;">Rate</th><th style="padding:8px 4px; text-align:right;">Amount</th></tr></thead>

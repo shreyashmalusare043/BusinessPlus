@@ -46,6 +46,8 @@ export default function CreateBillPage() {
       customer_email: '',
       bill_date: new Date().toISOString().split('T')[0],
       po_number: '',
+      delivery_challan_no: '',
+      delivery_challan_date: '',
       gst_type: 'cgst_sgst',
       tcs_applicable: false,
       notes: '',
@@ -99,6 +101,7 @@ export default function CreateBillPage() {
       }
       
       setEditingBill(bill);
+      setShowPoNumber(Boolean(bill.po_number));
       
       // Populate form with bill data
       form.reset({
@@ -108,6 +111,8 @@ export default function CreateBillPage() {
         customer_email: bill.customer_email || '',
         bill_date: bill.bill_date,
         po_number: bill.po_number || '',
+        delivery_challan_no: bill.delivery_challan_no || '',
+        delivery_challan_date: bill.delivery_challan_date || '',
         gst_type: bill.gst_type as 'cgst_sgst' | 'igst',
         tcs_applicable: bill.tcs_applicable,
         notes: bill.notes || '',
@@ -619,6 +624,35 @@ export default function CreateBillPage() {
                     )}
                   />
                 )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="delivery_challan_no"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Delivery Challan No.</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} placeholder="Enter delivery challan number" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="delivery_challan_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Delivery Challan Date</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} type="date" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <FormField

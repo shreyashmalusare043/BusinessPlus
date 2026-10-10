@@ -115,6 +115,8 @@ export interface Bill {
   customer_gst_number: string | null;
   customer_email: string | null;
   po_number: string | null;
+  delivery_challan_no: string | null;
+  delivery_challan_date: string | null;
   gst_type: GstType;
   subtotal: number;
   total_cgst: number;
@@ -403,6 +405,8 @@ export interface BillForm {
   customer_email?: string;
   bill_date: string;
   po_number?: string;
+  delivery_challan_no?: string;
+  delivery_challan_date?: string;
   gst_type: GstType;
   tcs_applicable: boolean;
   notes?: string;
