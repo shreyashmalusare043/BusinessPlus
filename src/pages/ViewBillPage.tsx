@@ -75,28 +75,28 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
       {/* Invoice Details */}
       <div className="md:text-right">
         <div className="space-y-0.5">
-          <div className="flex justify-start md:justify-end gap-2">
+          <div className="flex justify-end gap-2">
             <span className="text-sm font-semibold text-gray-500">Invoice No:</span>
             <span className="text-sm font-bold text-gray-900">{bill.bill_no}</span>
           </div>
-          <div className="flex justify-start md:justify-end gap-2">
+          <div className="flex justify-end gap-2">
             <span className="text-sm font-semibold text-gray-500">Invoice Date:</span>
             <span className="text-sm font-bold text-gray-900">{new Date(bill.bill_date).toLocaleDateString('en-GB')}</span>
           </div>
           {bill.po_number && (
-            <div className="flex justify-start md:justify-end gap-2">
+            <div className="flex justify-end gap-2">
               <span className="text-sm font-semibold text-gray-500">P.O. No:</span>
               <span className="text-sm font-bold text-gray-900">{bill.po_number}</span>
             </div>
           )}
           {bill.delivery_challan_no && (
-            <div className="flex justify-start md:justify-end gap-2">
+            <div className="flex justify-end gap-2">
               <span className="text-sm font-semibold text-gray-500">Delivery Challan No:</span>
               <span className="text-sm font-bold text-gray-900">{bill.delivery_challan_no}</span>
             </div>
           )}
           {bill.delivery_challan_date && (
-            <div className="flex justify-start md:justify-end gap-2">
+            <div className="flex justify-end gap-2">
               <span className="text-sm font-semibold text-gray-500">Delivery Challan Date:</span>
               <span className="text-sm font-bold text-gray-900">{new Date(bill.delivery_challan_date).toLocaleDateString('en-GB')}</span>
             </div>
