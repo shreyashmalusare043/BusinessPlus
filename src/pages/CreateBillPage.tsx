@@ -12,13 +12,16 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { createBill, createOutwardForBill, getAvailableInwardItems, getAvailableMaterialInventory, updateBill, getMyCustomers, createCustomer, checkSubscriptionStatus, getBillById, getMyCompany } from '@/db/api';
 import { supabase } from '@/db/supabase';
-import { Loader2, Plus, Trash2, UserPlus, Crown } from 'lucide-react';
+import { ChevronDown, Loader2, Plus, Trash2, UserPlus, Crown } from 'lucide-react';
 import type { Bill, BillForm, BillItemForm, Customer, BillWithItems, AvailableInwardItem, MaterialInventoryMovement } from '@/types';
 import { createBillPdfBase64 } from '@/lib/paymentEmail';
+
+const BILL_ITEM_UNITS = ['Nos', 'Ltr', 'Kg', 'MT'];
 
 export default function CreateBillPage() {
   const [loading, setLoading] = useState(false);
@@ -35,6 +38,7 @@ export default function CreateBillPage() {
   const [availableJobOrders, setAvailableJobOrders] = useState<MaterialInventoryMovement[]>([]);
   const [selectedJobOrders, setSelectedJobOrders] = useState<Record<number, string>>({});
   const [outwardMeta, setOutwardMeta] = useState<Record<number, { status: 'pending' | 'in_process' | 'rejected'; remark: string }>>({});
+  const [openUnitIndex, setOpenUnitIndex] = useState<number | null>(null);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -842,24 +846,41 @@ export default function CreateBillPage() {
             <CardContent>
               <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
                 <div className="inline-block min-w-full align-middle">
-                  <Table>
+                  <Table className="w-full min-w-[900px] table-fixed">
+                    <colgroup>
+                      <col className={form.watch('gst_type') === 'cgst_sgst' ? 'w-[36%]' : 'w-[42%]'} />
+                      <col className="w-[9%]" />
+                      <col className="w-[7%]" />
+                      <col className="w-[7%]" />
+                      <col className="w-[10%]" />
+                      {form.watch('gst_type') === 'cgst_sgst' ? (
+                        <>
+                          <col className="w-[6%]" />
+                          <col className="w-[6%]" />
+                        </>
+                      ) : (
+                        <col className="w-[6%]" />
+                      )}
+                      <col className="w-[12%]" />
+                      <col className="w-[7%]" />
+                    </colgroup>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="min-w-[150px]">Item Name</TableHead>
-                        <TableHead className="min-w-[100px]">HSN Code</TableHead>
-                        <TableHead className="w-24 min-w-[80px]">Qty/Wgt</TableHead>
-                        <TableHead className="w-24 min-w-[80px]">Unit</TableHead>
-                        <TableHead className="w-32 min-w-[100px]">Unit Price</TableHead>
+                        <TableHead className="whitespace-normal">Item Name</TableHead>
+                        <TableHead className="whitespace-normal">HSN Code</TableHead>
+                        <TableHead className="whitespace-normal">Qty/Wgt</TableHead>
+                        <TableHead>Unit</TableHead>
+                        <TableHead className="whitespace-normal">Unit Price</TableHead>
                         {form.watch('gst_type') === 'cgst_sgst' ? (
                           <>
-                            <TableHead className="w-24 min-w-[80px]">CGST %</TableHead>
-                            <TableHead className="w-24 min-w-[80px]">SGST %</TableHead>
+                            <TableHead>CGST %</TableHead>
+                            <TableHead>SGST %</TableHead>
                           </>
                         ) : (
-                          <TableHead className="w-24 min-w-[80px]">IGST %</TableHead>
+                          <TableHead>IGST %</TableHead>
                         )}
-                        <TableHead className="text-right min-w-[100px]">Total</TableHead>
-                        <TableHead className="w-16 min-w-[60px]"></TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>
                   <TableBody>
@@ -890,7 +911,25 @@ export default function CreateBillPage() {
                                 render={({ field }) => (
                                   <FormItem className="min-w-0 flex-1">
                                     <FormControl>
-                                      <Input {...field} placeholder="Item name" />
+                                      <Textarea
+                                        {...field}
+                                        ref={(element) => {
+                                          field.ref(element);
+                                          if (element) {
+                                            element.style.height = 'auto';
+                                            element.style.height = `${element.scrollHeight}px`;
+                                          }
+                                        }}
+                                        rows={1}
+                                        placeholder="Item name"
+                                        className="min-h-10 resize-none overflow-hidden"
+                                        style={{ overflowWrap: 'anywhere' }}
+                                        onChange={(event) => {
+                                          field.onChange(event);
+                                          event.currentTarget.style.height = 'auto';
+                                          event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`;
+                                        }}
+                                      />
                                     </FormControl>
                                   </FormItem>
                                 )}
@@ -969,14 +1008,52 @@ export default function CreateBillPage() {
                               rules={{ required: 'Required' }}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      {...field}
-                                      list="bill-unit-options"
-                                      placeholder="Unit"
-                                      onChange={(event) => field.onChange(event.target.value)}
-                                    />
-                                  </FormControl>
+                                  <Popover
+                                    open={openUnitIndex === index}
+                                    onOpenChange={(open) => setOpenUnitIndex(open ? index : null)}
+                                  >
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={openUnitIndex === index}
+                                        className="w-full justify-between px-2 font-normal"
+                                      >
+                                        <span className="truncate">{field.value || 'Select unit'}</span>
+                                        <ChevronDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent align="start" className="w-56 p-2">
+                                      <div className="space-y-1">
+                                        {BILL_ITEM_UNITS.map((unit) => (
+                                          <Button
+                                            key={unit}
+                                            type="button"
+                                            variant="ghost"
+                                            className="h-9 w-full justify-start"
+                                            onClick={() => {
+                                              field.onChange(unit);
+                                              setOpenUnitIndex(null);
+                                            }}
+                                          >
+                                            {unit}
+                                          </Button>
+                                        ))}
+                                      </div>
+                                      <div className="mt-2 border-t pt-2">
+                                        <Label htmlFor={`custom-unit-${index}`} className="mb-1 block text-xs text-muted-foreground">
+                                          Or enter a custom unit
+                                        </Label>
+                                        <Input
+                                          id={`custom-unit-${index}`}
+                                          value={BILL_ITEM_UNITS.includes(field.value) ? '' : field.value}
+                                          placeholder="Custom unit"
+                                          onChange={(event) => field.onChange(event.target.value)}
+                                        />
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -1081,12 +1158,6 @@ export default function CreateBillPage() {
                     })}
                   </TableBody>
                 </Table>
-                <datalist id="bill-unit-options">
-                  <option value="Nos" />
-                  <option value="Ltr" />
-                  <option value="Kg" />
-                  <option value="MT" />
-                </datalist>
                 </div>
               </div>
 

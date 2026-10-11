@@ -17,7 +17,7 @@ export default function CompanySetupPage() {
   const [loading, setLoading] = useState(false);
   const [existingCompany, setExistingCompany] = useState<any>(null);
   const navigate = useNavigate();
-  const [uploading, setUploading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState<'logo_url' | 'signature_url' | 'stamp_url' | null>(null);
   const [agreeToDataSecurity, setAgreeToDataSecurity] = useState(false);
 
   const form = useForm<CompanyForm>({
@@ -33,6 +33,8 @@ export default function CompanySetupPage() {
       account_number: '',
       branch_name: '',
       logo_url: null,
+      signature_url: null,
+      stamp_url: null,
     },
   });
 
@@ -58,6 +60,8 @@ export default function CompanySetupPage() {
           ifsc_code: company.ifsc_code || '',
           branch_name: company.branch_name || '',
           logo_url: company.logo_url,
+          signature_url: company.signature_url || null,
+          stamp_url: company.stamp_url || null,
         });
       }
     } catch (error) {
@@ -65,14 +69,23 @@ export default function CompanySetupPage() {
     }
   };
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: 'logo_url' | 'signature_url' | 'stamp_url',
+    label: string,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploading(true);
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file');
+      e.target.value = '';
+      return;
+    }
+
+    setUploadingImage(field);
     try {
-      // Upload to Supabase Storage
-      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+      const fileName = `${field}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
       const { data, error } = await supabase.storage
         .from('aexewhy21fr5_company_logos')
         .upload(fileName, file);
@@ -84,12 +97,12 @@ export default function CompanySetupPage() {
         .from('aexewhy21fr5_company_logos')
         .getPublicUrl(fileName);
 
-      form.setValue('logo_url', urlData.publicUrl);
-      toast.success('Logo uploaded successfully');
+      form.setValue(field, urlData.publicUrl);
+      toast.success(`${label} uploaded successfully`);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to upload logo');
+      toast.error(error.message || `Failed to upload ${label.toLowerCase()}`);
     } finally {
-      setUploading(false);
+      setUploadingImage(null);
     }
   };
 
@@ -326,12 +339,62 @@ export default function CompanySetupPage() {
                   <Input
                     type="file"
                     accept="image/*"
-                    onChange={handleLogoUpload}
-                    disabled={uploading}
+                    onChange={(e) => handleImageUpload(e, 'logo_url', 'Logo')}
+                    disabled={uploadingImage !== null}
                     className="max-w-md bg-background"
                   />
                 </div>
-                {uploading && <p className="text-sm text-primary">Uploading logo...</p>}
+                {uploadingImage === 'logo_url' && <p className="text-sm text-primary">Uploading logo...</p>}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-3 rounded-xl border border-dashed p-5 sm:p-6">
+                  <div>
+                    <Label className="text-base">Add Signature</Label>
+                    <p className="mt-1 text-sm text-muted-foreground">This image will appear above Authorized Signature on bills.</p>
+                  </div>
+                  <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                    {form.watch('signature_url') && (
+                      <img
+                        src={form.watch('signature_url') || ''}
+                        alt="Authorized signature"
+                        className="h-16 w-32 rounded-lg border bg-white object-contain p-1"
+                      />
+                    )}
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'signature_url', 'Signature')}
+                      disabled={uploadingImage !== null}
+                      className="max-w-md bg-background"
+                    />
+                  </div>
+                  {uploadingImage === 'signature_url' && <p className="text-sm text-primary">Uploading signature...</p>}
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-dashed p-5 sm:p-6">
+                  <div>
+                    <Label className="text-base">Add Stamp</Label>
+                    <p className="mt-1 text-sm text-muted-foreground">This image will appear next to the signature on bills.</p>
+                  </div>
+                  <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                    {form.watch('stamp_url') && (
+                      <img
+                        src={form.watch('stamp_url') || ''}
+                        alt="Company stamp"
+                        className="h-20 w-20 rounded-lg border bg-white object-contain p-1"
+                      />
+                    )}
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'stamp_url', 'Stamp')}
+                      disabled={uploadingImage !== null}
+                      className="max-w-md bg-background"
+                    />
+                  </div>
+                  {uploadingImage === 'stamp_url' && <p className="text-sm text-primary">Uploading stamp...</p>}
+                </div>
               </div>
 
               {/* Data Security Policy Checkbox - Only for new company setup */}
@@ -361,7 +424,7 @@ export default function CompanySetupPage() {
               )}
 
               <div className="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-end">
-                <Button type="submit" disabled={loading || uploading} className="sm:min-w-40">
+                <Button type="submit" disabled={loading || uploadingImage !== null} className="sm:min-w-40">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   {existingCompany ? 'Update Company' : 'Complete Setup'}
                 </Button>

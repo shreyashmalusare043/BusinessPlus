@@ -20,6 +20,7 @@ const purposeOptions = [
   { value: 'repair', label: 'For Repair' },
   { value: 'sample', label: 'For Sample' },
   { value: 'branch_transfer', label: 'Branch Transfer' },
+  { value: 'sales', label: 'For Sales' },
 ];
 
 export default function CreateChallanPage({ isEdit = false }: { isEdit?: boolean }) {

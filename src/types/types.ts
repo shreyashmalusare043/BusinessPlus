@@ -94,6 +94,8 @@ export interface Company {
   contact_phone: string | null;
   contact_email: string | null;
   logo_url: string | null;
+  signature_url: string | null;
+  stamp_url: string | null;
   website: string | null;
   bank_name: string | null;
   account_holder_name: string | null;
@@ -461,6 +463,8 @@ export interface CompanyForm {
   ifsc_code: string;
   branch_name: string;
   logo_url: string | null;
+  signature_url: string | null;
+  stamp_url: string | null;
 }
 
 // GST API response
@@ -558,7 +562,7 @@ export interface SupportTicket {
   updated_at: string;
 }
 
-export type DeliveryChallanPurpose = 'job_work' | 'return_after_job_work' | 'repair' | 'sample' | 'branch_transfer';
+export type DeliveryChallanPurpose = 'job_work' | 'return_after_job_work' | 'repair' | 'sample' | 'branch_transfer' | 'sales';
 
 export interface DeliveryChallan {
   id: string;
@@ -714,4 +718,3 @@ export interface WorkOrderForm {
   status: WorkOrderStatus;
   notes: string;
 }
-

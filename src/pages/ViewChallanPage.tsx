@@ -18,6 +18,7 @@ const purposeLabels: Record<string, string> = {
   repair: 'For Repair',
   sample: 'For Sample',
   branch_transfer: 'Branch Transfer',
+  sales: 'For Sales',
 };
 
 const purposeDeclarations: Record<string, string> = {
@@ -26,6 +27,7 @@ const purposeDeclarations: Record<string, string> = {
   repair: 'Goods sent for Repair and not for sale.',
   sample: 'Goods sent as Sample and not for sale.',
   branch_transfer: 'Goods transferred to Branch and not for sale.',
+  sales: 'Goods sent for sale.',
 };
 
 // Challan Copy Component
@@ -36,7 +38,7 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
       {/* Company Info */}
       <div className="flex gap-3 items-start">
         {company.logo_url && (
-          <img src={company.logo_url} alt="Logo" className="h-12 w-12 md:h-20 md:w-20 object-contain flex-shrink-0" />
+          <img src={company.logo_url} alt="Logo" className="challan-logo h-12 w-12 md:h-20 md:w-20 object-contain flex-shrink-0" />
         )}
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
@@ -61,7 +63,7 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-4 md:mb-8">
       {/* Consignee Details */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Consignee / Party Details</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Party Details</p>
         <p className="text-lg font-bold text-gray-900 mb-2">{challan.party_name}</p>
         {challan.party_address && <p className="text-sm text-gray-600 mb-1">{challan.party_address}</p>}
         <div className="text-sm text-gray-600 mt-2 space-y-0.5">
@@ -158,9 +160,9 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
     {/* Footer - Signature Section */}
     <div className="border-t-2 border-gray-200 pt-6">
       <div className="grid grid-cols-2 gap-12">
-        {/* Prepared By */}
+        {/* Received By */}
         <div>
-          <p className="text-xs font-semibold text-gray-600 mb-12">Prepared By</p>
+          <p className="text-xs font-semibold text-gray-600 mb-12">Received By</p>
           <div className="inline-block border-t-2 border-gray-900 pt-2 px-8">
             <p className="text-xs font-bold text-gray-900 uppercase tracking-wide">Signature</p>
           </div>
@@ -168,7 +170,23 @@ const ChallanCopy = ({ challan, company, copyType }: { challan: DeliveryChallanW
 
         {/* Authorized Signatory */}
         <div className="text-right">
-          <p className="text-xs font-semibold text-gray-600 mb-12">For {company.company_name}</p>
+          <p className="text-xs font-semibold text-gray-600 mb-2">For {company.company_name}</p>
+          <div className="mb-2 flex h-16 items-end justify-end gap-3">
+            {company.stamp_url && (
+              <img
+                src={company.stamp_url}
+                alt="Company stamp"
+                className="challan-stamp h-20 w-20 object-contain"
+              />
+            )}
+            {company.signature_url && (
+              <img
+                src={company.signature_url}
+                alt="Authorized signature"
+                className="challan-signature h-14 w-32 object-contain"
+              />
+            )}
+          </div>
           <div className="inline-block border-t-2 border-gray-900 pt-2 px-8">
             <p className="text-xs font-bold text-gray-900 uppercase tracking-wide">Authorized Signatory</p>
           </div>
@@ -392,9 +410,15 @@ export default function ViewChallanPage() {
                 font-size: 2.25rem !important;
               }
               
-              .challan-copy img {
+              .challan-copy .challan-logo,
+              .challan-copy .challan-stamp {
                 height: 5rem !important;
                 width: 5rem !important;
+              }
+
+              .challan-copy .challan-signature {
+                height: 3.5rem !important;
+                width: 8rem !important;
               }
               
               .challan-copy .grid {
@@ -467,9 +491,15 @@ export default function ViewChallanPage() {
                 text-align: right !important;
               }
               
-              .challan-copy img {
+              .challan-copy .challan-logo,
+              .challan-copy .challan-stamp {
                 height: 5rem !important;
                 width: 5rem !important;
+              }
+
+              .challan-copy .challan-signature {
+                height: 3.5rem !important;
+                width: 8rem !important;
               }
               
               .challan-copy .grid {

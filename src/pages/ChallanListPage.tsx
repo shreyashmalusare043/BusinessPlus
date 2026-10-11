@@ -16,6 +16,7 @@ const purposeLabels: Record<string, string> = {
   repair: 'For Repair',
   sample: 'For Sample',
   branch_transfer: 'Branch Transfer',
+  sales: 'For Sales',
 };
 
 export default function ChallanListPage() {

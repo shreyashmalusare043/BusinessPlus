@@ -25,7 +25,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
       {/* Company Info */}
       <div className="flex gap-3 items-start">
         {company.logo_url && (
-          <img src={company.logo_url} alt="Logo" className="h-16 md:h-20 w-16 md:w-20 object-contain flex-shrink-0" />
+          <img src={company.logo_url} alt="Logo" className="bill-logo h-16 md:h-20 w-16 md:w-20 object-contain flex-shrink-0" />
         )}
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{company.company_name}</h1>
@@ -41,7 +41,7 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
       {/* Invoice Title & Copy Type */}
       <div className="text-left md:text-right w-full md:w-auto">
-        <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">INVOICE</h2>
+        <h2 className="text-2xl md:text-4xl font-bold text-primary mb-2">TAX INVOICE</h2>
         <span 
   className="inline-block text-xs font-semibold px-3 py-1 uppercase tracking-wide"
   style={{
@@ -107,16 +107,25 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
     {/* Items Table */}
     <div className="mb-6 md:mb-8 overflow-x-auto -mx-2 px-2 md:mx-0 md:px-0">
-      <table className="w-full" style={{ minWidth: '100px' }}>
+      <table className="w-full table-fixed border-collapse border border-gray-300" style={{ minWidth: '100px' }}>
+        <colgroup>
+          <col style={{ width: '4%' }} />
+          <col style={{ width: '50%' }} />
+          <col style={{ width: '10%' }} />
+          <col style={{ width: '9%' }} />
+          <col style={{ width: '7%' }} />
+          <col style={{ width: '10%' }} />
+          <col style={{ width: '10%' }} />
+        </colgroup>
         <thead>
           <tr className="border-b-2 border-gray-900">
-            <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide w-12 min-w-[40px]">#</th>
-            <th className="py-3 px-2 text-left text-xs font-bold text-gray-900 uppercase tracking-wide min-w-[120px]">Description</th>
-            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">HSN/SAC</th>
-            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">Qty/Wgt</th>
-            <th className="py-3 px-2 text-center text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">Unit</th>
-            <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-24 min-w-[80px]">Rate</th>
-            <th className="py-3 px-2 text-right text-xs font-bold text-gray-900 uppercase tracking-wide w-28 min-w-[90px]">Amount</th>
+            <th className="py-3 px-1 text-left text-xs font-bold text-gray-900 uppercase tracking-wide border-r border-gray-300">#</th>
+            <th className="py-3 px-1 text-left text-xs font-bold text-gray-900 uppercase tracking-wide border-r border-gray-300">Description</th>
+            <th className="py-3 px-1 text-center text-xs font-bold text-gray-900 uppercase tracking-wide border-r border-gray-300">HSN/SAC</th>
+            <th className="py-3 px-1 text-center text-xs font-bold text-gray-900 uppercase tracking-wide border-r border-gray-300">Qty/Wgt</th>
+            <th className="py-3 px-1 text-center text-xs font-bold text-gray-900 uppercase tracking-wide border-r border-gray-300">Unit</th>
+            <th className="py-3 px-1 text-right text-xs font-bold text-gray-900 uppercase tracking-wide border-r border-gray-300">Rate</th>
+            <th className="py-3 px-1 text-right text-xs font-bold text-gray-900 uppercase tracking-wide">Amount</th>
           </tr>
         </thead>
         <tbody>
@@ -124,13 +133,13 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
             const itemSubtotal = item.quantity * item.unit_price;
             return (
               <tr key={item.id} className="border-b border-gray-200">
-                <td className="py-3 px-2 text-sm text-gray-600">{index + 1}</td>
-                <td className="py-3 px-2 text-sm font-medium text-gray-900">{item.item_name}</td>
-                <td className="py-3 px-2 text-sm text-center text-gray-600">{item.hsn_code}</td>
-                <td className="py-3 px-2 text-sm text-center text-gray-600">{Number(item.quantity).toFixed(3)}</td>
-                <td className="py-3 px-2 text-sm text-center text-gray-600">{item.unit}</td>
-                <td className="py-3 px-2 text-sm text-right text-gray-600">₹{item.unit_price.toFixed(2)}</td>
-                <td className="py-3 px-2 text-sm text-right font-semibold text-gray-900">₹{itemSubtotal.toFixed(2)}</td>
+                <td className="py-3 px-1 text-sm text-gray-600 border-r border-gray-300">{index + 1}</td>
+                <td className="py-3 px-1 text-sm font-medium text-gray-900 break-words border-r border-gray-300" style={{ overflowWrap: 'anywhere' }}>{item.item_name}</td>
+                <td className="py-3 px-1 text-sm text-center text-gray-600 break-words border-r border-gray-300" style={{ overflowWrap: 'anywhere' }}>{item.hsn_code}</td>
+                <td className="py-3 px-1 text-sm text-center text-gray-600 border-r border-gray-300">{Number(item.quantity).toFixed(3)}</td>
+                <td className="py-3 px-1 text-sm text-center text-gray-600 break-words border-r border-gray-300" style={{ overflowWrap: 'anywhere' }}>{item.unit}</td>
+                <td className="py-3 px-1 text-sm text-right text-gray-600 border-r border-gray-300">₹{item.unit_price.toFixed(2)}</td>
+                <td className="py-3 px-1 text-sm text-right font-semibold text-gray-900">₹{itemSubtotal.toFixed(2)}</td>
               </tr>
             );
           })}
@@ -151,16 +160,16 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
       {/* GST Condition */}
       {bill.gst_type === 'cgst_sgst' ? (
-        <>
-          <div className="flex justify-between py-2 text-sm border-b border-gray-200">
+        <div className="flex justify-between gap-4 py-2 text-sm border-b border-gray-200">
+          <div className="flex flex-1 justify-between gap-2">
             <span className="text-gray-600">CGST (9%)</span>
             <span className="font-medium text-gray-900">₹{bill.total_cgst.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between py-2 text-sm border-b border-gray-200">
+          <div className="flex flex-1 justify-between gap-3">
             <span className="text-gray-600">SGST (9%)</span>
             <span className="font-medium text-gray-900">₹{bill.total_sgst.toFixed(2)}</span>
           </div>
-        </>
+        </div>
       ) : (
         <div className="flex justify-between py-2 text-sm border-b border-gray-200">
           <span className="text-gray-600">IGST (18%)</span>
@@ -239,7 +248,23 @@ const BillCopy = ({ bill, company, copyType }: { bill: BillWithItems; company: C
 
         {/* Signature */}
         <div className="text-right">
-          <p className="text-xs font-semibold text-gray-600 mb-16">For {company.company_name}</p>
+          <p className="text-xs font-semibold text-gray-600 mb-2">For {company.company_name}</p>
+          <div className="mb-2 flex h-16 items-end justify-end gap-3">
+            {company.stamp_url && (
+              <img
+                src={company.stamp_url}
+                alt="Company stamp"
+                className="h-20 w-20 object-contain"
+              />
+            )}
+            {company.signature_url && (
+              <img
+                src={company.signature_url}
+                alt="Authorized signature"
+                className="h-14 w-32 object-contain"
+              />
+            )}
+          </div>
           <div className="inline-block border-t-2 border-gray-900 pt-2 px-8">
             <p className="text-xs font-bold text-gray-900 uppercase tracking-wide">Authorized Signature</p>
           </div>
@@ -428,7 +453,7 @@ export default function ViewBillPage() {
                 font-size: 2.25rem !important;
               }
               
-              .bill-copy img {
+              .bill-copy .bill-logo {
                 height: 5rem !important;
                 width: 5rem !important;
               }
@@ -499,7 +524,7 @@ export default function ViewBillPage() {
                 font-size: 2.25rem !important;
                 text-align: right !important;
               }
-              .bill-copy img {
+              .bill-copy .bill-logo {
                 height: 5rem !important;
                 width: 5rem !important;
               }

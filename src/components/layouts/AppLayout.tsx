@@ -126,7 +126,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="fixed inset-0 flex w-full overflow-hidden">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex lg:w-64 lg:flex-col bg-sidebar-background border-r">
         <SidebarContent />
@@ -140,7 +140,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </Sheet>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* Header */}
         <header className="flex h-14 sm:h-16 items-center gap-2 sm:gap-4 border-b bg-card px-3 sm:px-4 lg:px-6">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -184,12 +184,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-background p-3 sm:p-4 lg:p-6">
+        <main className="min-h-0 flex-1 overflow-y-auto bg-background p-3 sm:p-4 lg:p-6">
           {children}
         </main>
 
         {/* Footer */}
-        <footer className="border-t bg-background px-3 sm:px-4 py-2 sm:py-3">
+        <footer className="shrink-0 border-t bg-background px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
             <p className="text-center md:text-left">© 2026 BusinessPlus. All rights reserved.</p>
             <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
